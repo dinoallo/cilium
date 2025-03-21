@@ -1109,7 +1109,7 @@ func (s *Service) UpdateBackendsStateMultiple(svcMapping map[lb.ID]*svcInfo, bac
 					}
 
 					p = &datapathTypes.UpsertServiceParams{
-						ID:                        uint16(id),
+						ID:                        uint32(id),
 						IP:                        info.frontend.L3n4Addr.AddrCluster.AsNetIP(),
 						Port:                      info.frontend.L3n4Addr.L4Addr.Port,
 						Protocol:                  byte(proto),
@@ -1572,7 +1572,7 @@ func (s *Service) deleteBackendsFromAffinityMatchMap(svcID lb.ID, backendIDs []l
 	}).Debug("Deleting backends from session affinity match")
 
 	for _, bID := range backendIDs {
-		if err := s.lbmap.DeleteAffinityMatch(uint16(svcID), bID); err != nil {
+		if err := s.lbmap.DeleteAffinityMatch(uint32(svcID), bID); err != nil {
 			log.WithFields(logrus.Fields{
 				logfields.BackendID: bID,
 				logfields.ServiceID: svcID,
@@ -1588,7 +1588,7 @@ func (s *Service) addBackendsToAffinityMatchMap(svcID lb.ID, backendIDs []lb.Bac
 	}).Debug("Adding backends to affinity match map")
 
 	for _, bID := range backendIDs {
-		if err := s.lbmap.AddAffinityMatch(uint16(svcID), bID); err != nil {
+		if err := s.lbmap.AddAffinityMatch(uint32(svcID), bID); err != nil {
 			log.WithFields(logrus.Fields{
 				logfields.BackendID: bID,
 				logfields.ServiceID: svcID,
@@ -1642,7 +1642,7 @@ func (s *Service) upsertServiceIntoLBMaps(svc *svcInfo, isExtLocal, isIntLocal b
 	// Update LB source range check cidrs
 	checkLBSrcRange := svc.checkLBSourceRange()
 	if checkLBSrcRange || len(prevLoadBalancerSourceRanges) != 0 {
-		if err := s.lbmap.UpdateSourceRanges(uint16(svc.frontend.ID),
+		if err := s.lbmap.UpdateSourceRanges(uint32(svc.frontend.ID),
 			prevLoadBalancerSourceRanges, svc.loadBalancerSourceRanges,
 			v6FE); err != nil {
 			return err
@@ -1701,7 +1701,7 @@ func (s *Service) upsertServiceIntoLBMaps(svc *svcInfo, isExtLocal, isIntLocal b
 	}
 
 	p := &datapathTypes.UpsertServiceParams{
-		ID:                        uint16(svc.frontend.ID),
+		ID:                        uint32(svc.frontend.ID),
 		IP:                        svc.frontend.L3n4Addr.AddrCluster.AsNetIP(),
 		Port:                      svc.frontend.L3n4Addr.L4Addr.Port,
 		Protocol:                  uint8(protocol),
@@ -1945,7 +1945,7 @@ func (s *Service) restoreServicesLocked(svcBackendsById map[lb.BackendID]struct{
 
 				backends[b.String()] = b
 			}
-			if err := s.lbmap.UpsertMaglevLookupTable(uint16(newSVC.frontend.ID), backends,
+			if err := s.lbmap.UpsertMaglevLookupTable(uint32(newSVC.frontend.ID), backends,
 				ipv6); err != nil {
 				scopedLog.WithError(err).Warning("Unable to upsert into the Maglev BPF map.")
 				continue
@@ -1988,7 +1988,7 @@ func (s *Service) deleteServiceLocked(svc *svcInfo) error {
 	}
 
 	if svc.checkLBSourceRange() {
-		if err := s.lbmap.UpdateSourceRanges(uint16(svc.frontend.ID),
+		if err := s.lbmap.UpdateSourceRanges(uint32(svc.frontend.ID),
 			svc.loadBalancerSourceRanges, nil, ipv6); err != nil {
 			return err
 		}

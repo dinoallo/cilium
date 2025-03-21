@@ -256,7 +256,7 @@ func DumpLBMaps(lbmaps LBMaps, sanitizeIDs bool, customizeAddr func(net.IP, uint
 
 	maglevCB := func(key lbmap.MaglevOuterKey, _ lbmap.MaglevOuterVal, _ lbmap.MaglevInnerKey, innerValue *lbmap.MaglevInnerVal, _ bool) {
 		key = lbmap.MaglevOuterKey{
-			RevNatID: byteorder.NetworkToHost16(key.RevNatID),
+			RevNatID: byteorder.NetworkToHost32(key.RevNatID),
 		}
 		idCounts := make(map[loadbalancer.BackendID]int)
 		for _, backend := range innerValue.BackendIDs {
@@ -282,7 +282,7 @@ func DumpLBMaps(lbmaps LBMaps, sanitizeIDs bool, customizeAddr func(net.IP, uint
 			ids = append(ids, fmt.Sprintf("%s(%d)", sanitizeID(idWithCount.BackendID, sanitizeIDs), idWithCount.count))
 		}
 		out = append(out, fmt.Sprintf("MAGLEV: ID=%s INNER=[%s]",
-			sanitizeID(byteorder.HostToNetwork16(key.RevNatID), sanitizeIDs),
+			sanitizeID(byteorder.HostToNetwork32(key.RevNatID), sanitizeIDs),
 			strings.Join(ids, ", "),
 		))
 	}

@@ -31,6 +31,8 @@ const (
 
 	// Service6MapV2Name is the name of the IPv6 LB Services v2 BPF map.
 	Service6MapV2Name = "cilium_lb6_services_v2"
+	// Service6MapV3Name is the name of the IPv6 LB Services v3 BPF map.
+	Service6MapV3Name = "cilium_lb6_services_v3"
 	// Backend6MapName is the name of the IPv6 LB backends BPF map.
 	Backend6MapName = "cilium_lb6_backends"
 	// Backend6MapV2Name is the name of the IPv6 LB backends v2 BPF map.
@@ -39,6 +41,8 @@ const (
 	Backend6MapV3Name = "cilium_lb6_backends_v3"
 	// RevNat6MapName is the name of the IPv6 LB reverse NAT BPF map.
 	RevNat6MapName = "cilium_lb6_reverse_nat"
+	// RevNat6MapName is the name of the IPv6 LB reverse NAT BPF map.
+	RevNat6MapV2Name = "cilium_lb6_reverse_nat_v2"
 )
 
 var (
@@ -50,6 +54,8 @@ var (
 
 	// Service6MapV2 is the IPv6 LB Services v2 BPF map.
 	Service6MapV2 *bpf.Map
+	// Service6MapV3 is the IPv6 LB Services v3 BPF map.
+	Service6MapV3 *bpf.Map
 	// Backend6Map is the IPv6 LB backends BPF map.
 	Backend6Map *bpf.Map
 	// Backend6MapV2 is the IPv6 LB backends v2 BPF map.
@@ -58,15 +64,19 @@ var (
 	Backend6MapV3 *bpf.Map
 	// RevNat6Map is the IPv6 LB reverse NAT BPF map.
 	RevNat6Map *bpf.Map
+	// RevNat6Map is the IPv6 LB reverse NAT v2 BPF map.
+	RevNat6MapV2 *bpf.Map
 	// SockRevNat6Map is the IPv6 LB sock reverse NAT BPF map.
 	SockRevNat6Map *bpf.Map
 )
 
 // The compile-time check for whether the structs implement the interfaces
 var _ RevNatKey = (*RevNat6Key)(nil)
+var _ RevNatKey = (*RevNat6KeyV2)(nil)
 var _ RevNatValue = (*RevNat6Value)(nil)
 var _ ServiceKey = (*Service6Key)(nil)
 var _ ServiceValue = (*Service6Value)(nil)
+var _ ServiceValue = (*Service6ValueV3)(nil)
 var _ BackendKey = (*Backend6Key)(nil)
 var _ BackendValue = (*Backend6Value)(nil)
 var _ Backend = (*Backend6)(nil)
@@ -82,7 +92,7 @@ func NewRevNat6Key(value uint16) *RevNat6Key {
 func (v *RevNat6Key) Map() *bpf.Map   { return RevNat6Map }
 func (v *RevNat6Key) String() string  { return fmt.Sprintf("%d", v.ToHost().(*RevNat6Key).Key) }
 func (v *RevNat6Key) New() bpf.MapKey { return &RevNat6Key{} }
-func (v *RevNat6Key) GetKey() uint16  { return v.Key }
+func (v *RevNat6Key) GetKey() uint32  { return uint32(v.Key) }
 
 // ToNetwork converts RevNat6Key to network byte order.
 func (v *RevNat6Key) ToNetwork() RevNatKey {
@@ -95,6 +105,33 @@ func (v *RevNat6Key) ToNetwork() RevNatKey {
 func (v *RevNat6Key) ToHost() RevNatKey {
 	h := *v
 	h.Key = byteorder.NetworkToHost16(h.Key)
+	return &h
+}
+
+type RevNat6KeyV2 struct {
+	Key uint32
+}
+
+func NewRevNat6KeyV2(value uint32) *RevNat6KeyV2 {
+	return &RevNat6KeyV2{value}
+}
+
+func (v *RevNat6KeyV2) Map() *bpf.Map   { return RevNat6MapV2 }
+func (v *RevNat6KeyV2) String() string  { return fmt.Sprintf("%d", v.ToHost().(*RevNat6KeyV2).Key) }
+func (v *RevNat6KeyV2) New() bpf.MapKey { return &RevNat6KeyV2{} }
+func (v *RevNat6KeyV2) GetKey() uint32  { return uint32(v.Key) }
+
+// ToNetwork converts RevNat6KeyV2 to network byte order.
+func (v *RevNat6KeyV2) ToNetwork() RevNatKey {
+	n := *v
+	n.Key = byteorder.HostToNetwork32(n.Key)
+	return &n
+}
+
+// ToNetwork converts RevNat6KeyV2 to host byte order.
+func (v *RevNat6KeyV2) ToHost() RevNatKey {
+	h := *v
+	h.Key = byteorder.NetworkToHost32(h.Key)
 	return &h
 }
 
@@ -273,6 +310,92 @@ func (s *Service6Value) ToNetwork() ServiceValue {
 func (s *Service6Value) ToHost() ServiceValue {
 	h := *s
 	h.RevNat = byteorder.NetworkToHost16(h.RevNat)
+	return &h
+}
+
+type Service6ValueV3 struct {
+	BackendID uint32 `align:"$union0"`
+	Count     uint16 `align:"count"`
+	Pad       uint16 `align:"pad"`
+	RevNat    uint32 `align:"rev_nat_index"`
+	Flags     uint8  `align:"flags"`
+	Flags2    uint8  `align:"flags2"`
+	QCount    uint16 `align:"qcount"`
+}
+
+func (s *Service6ValueV3) New() bpf.MapValue { return &Service6ValueV3{} }
+
+func (s *Service6ValueV3) String() string {
+	sHost := s.ToHost().(*Service6ValueV3)
+	return fmt.Sprintf("%d %d[%d] (%d) [0x%x 0x%x]", sHost.BackendID, sHost.Count, sHost.QCount, sHost.RevNat, sHost.Flags, sHost.Flags2)
+}
+
+func (s *Service6ValueV3) SetCount(count int)   { s.Count = uint16(count) }
+func (s *Service6ValueV3) GetCount() int        { return int(s.Count) }
+func (s *Service6ValueV3) SetQCount(count int)  { s.QCount = uint16(count) }
+func (s *Service6ValueV3) GetQCount() int       { return int(s.QCount) }
+func (s *Service6ValueV3) SetRevNat(id int)     { s.RevNat = uint32(id) }
+func (s *Service6ValueV3) GetRevNat() int       { return int(s.RevNat) }
+func (s *Service6ValueV3) RevNatKey() RevNatKey { return &RevNat6KeyV2{s.RevNat} }
+func (s *Service6ValueV3) SetFlags(flags uint16) {
+	s.Flags = uint8(flags & 0xff)
+	s.Flags2 = uint8(flags >> 8)
+}
+
+func (s *Service6ValueV3) GetLbAlg() loadbalancer.SVCLoadBalancingAlgorithm {
+	return loadbalancer.SVCLoadBalancingAlgorithm(uint8(uint32(s.BackendID) >> 24))
+}
+
+func (s *Service6ValueV3) SetLbAlg(lb loadbalancer.SVCLoadBalancingAlgorithm) {
+	// See (* Service6ValueV3).SetLbAlg() for comment
+	s.BackendID = uint32(lb)<<24 + (s.BackendID & sessionAffinityMask)
+}
+
+func (s *Service6ValueV3) GetFlags() uint16 {
+	return (uint16(s.Flags2) << 8) | uint16(s.Flags)
+}
+
+func (s *Service6ValueV3) SetSessionAffinityTimeoutSec(t uint32) error {
+	// See (* Service4Value).SetSessionAffinityTimeoutSec() for comment
+	if t > sessionAffinityMask {
+		return fmt.Errorf("session affinity timeout %d does not fit into 24 bits (is larger than 16777215)", t)
+	}
+	s.BackendID = (s.BackendID & lbAlgMask) + (t & sessionAffinityMask)
+	return nil
+}
+
+func (s *Service6ValueV3) GetSessionAffinityTimeoutSec() uint32 {
+	return s.BackendID & sessionAffinityMask
+}
+
+func (s *Service6ValueV3) SetL7LBProxyPort(port uint16) {
+	// Go doesn't support union types, so we use BackendID to access the
+	// lb6_service.l7_lb_proxy_port field
+	s.BackendID = uint32(byteorder.HostToNetwork16(port))
+}
+
+func (s *Service6ValueV3) GetL7LBProxyPort() uint16 {
+	return byteorder.HostToNetwork16(uint16(s.BackendID))
+}
+
+func (s *Service6ValueV3) SetBackendID(id loadbalancer.BackendID) {
+	s.BackendID = uint32(id)
+}
+
+func (s *Service6ValueV3) GetBackendID() loadbalancer.BackendID {
+	return loadbalancer.BackendID(s.BackendID)
+}
+
+func (s *Service6ValueV3) ToNetwork() ServiceValue {
+	n := *s
+	n.RevNat = byteorder.HostToNetwork32(n.RevNat)
+	return &n
+}
+
+// ToHost converts Service6ValueV3 to host byte order.
+func (s *Service6ValueV3) ToHost() ServiceValue {
+	h := *s
+	h.RevNat = byteorder.NetworkToHost32(h.RevNat)
 	return &h
 }
 

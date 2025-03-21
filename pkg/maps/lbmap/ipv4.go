@@ -30,6 +30,8 @@ const (
 
 	// Service4MapV2Name is the name of the IPv4 LB Services v2 BPF map.
 	Service4MapV2Name = "cilium_lb4_services_v2"
+	// Service4MapV3Name is the name of the IPv4 LB Services v3 BPF map.
+	Service4MapV3Name = "cilium_lb4_services_v3"
 	// Backend4MapName is the name of the IPv4 LB backends BPF map.
 	Backend4MapName = "cilium_lb4_backends"
 	// Backend4MapV2Name is the name of the IPv4 LB backends v2 BPF map.
@@ -38,6 +40,8 @@ const (
 	Backend4MapV3Name = "cilium_lb4_backends_v3"
 	// RevNat4MapName is the name of the IPv4 LB reverse NAT BPF map.
 	RevNat4MapName = "cilium_lb4_reverse_nat"
+	// RevNat4MapName is the name of the IPv4 LB reverse NAT v2 BPF map.
+	RevNat4MapV2Name = "cilium_lb4_reverse_nat_v2"
 )
 
 var (
@@ -49,6 +53,8 @@ var (
 
 	// Service4MapV2 is the IPv4 LB Services v2 BPF map.
 	Service4MapV2 *bpf.Map
+	// Service4MapV2 is the IPv4 LB Services v3 BPF map.
+	Service4MapV3 *bpf.Map
 	// Backend4Map is the IPv4 LB backends BPF map.
 	Backend4Map *bpf.Map
 	// Backend4MapV2 is the IPv4 LB backends v2 BPF map.
@@ -57,6 +63,8 @@ var (
 	Backend4MapV3 *bpf.Map
 	// RevNat4Map is the IPv4 LB reverse NAT BPF map.
 	RevNat4Map *bpf.Map
+	// RevNat4Map is the IPv4 LB reverse NAT v2 BPF map.
+	RevNat4MapV2 *bpf.Map
 	// SockRevNat4Map is the IPv4 LB sock reverse NAT BPF map.
 	SockRevNat4Map *bpf.Map
 )
@@ -78,6 +86,14 @@ func initSVC(params InitParams) {
 			0,
 		).WithCache().WithPressureMetric().
 			WithEvents(option.Config.GetEventBufferConfig(Service4MapV2Name))
+		Service4MapV3 = bpf.NewMap(Service4MapV3Name,
+			ebpf.Hash,
+			&Service4Key{},
+			&Service4ValueV3{},
+			ServiceMapMaxEntries,
+			0,
+		).WithCache().WithPressureMetric().
+			WithEvents(option.Config.GetEventBufferConfig(Service4MapV3Name))
 		Backend4Map = bpf.NewMap(Backend4MapName,
 			ebpf.Hash,
 			&Backend4Key{},
@@ -110,6 +126,14 @@ func initSVC(params InitParams) {
 			0,
 		).WithCache().WithPressureMetric().
 			WithEvents(option.Config.GetEventBufferConfig(RevNat4MapName))
+		RevNat4MapV2 = bpf.NewMap(RevNat4MapV2Name,
+			ebpf.Hash,
+			&RevNat4KeyV2{},
+			&RevNat4Value{},
+			RevNatMapMaxEntries,
+			0,
+		).WithCache().WithPressureMetric().
+			WithEvents(option.Config.GetEventBufferConfig(RevNat4MapV2Name))
 	}
 
 	if params.IPv6 {
@@ -158,9 +182,11 @@ func initSVC(params InitParams) {
 
 // The compile-time check for whether the structs implement the interfaces
 var _ RevNatKey = (*RevNat4Key)(nil)
+var _ RevNatKey = (*RevNat4KeyV2)(nil)
 var _ RevNatValue = (*RevNat4Value)(nil)
 var _ ServiceKey = (*Service4Key)(nil)
 var _ ServiceValue = (*Service4Value)(nil)
+var _ ServiceValue = (*Service4ValueV3)(nil)
 var _ BackendKey = (*Backend4Key)(nil)
 var _ BackendKey = (*Backend4KeyV3)(nil)
 var _ BackendValue = (*Backend4Value)(nil)
@@ -180,7 +206,7 @@ func NewRevNat4Key(value uint16) *RevNat4Key {
 func (k *RevNat4Key) Map() *bpf.Map   { return RevNat4Map }
 func (k *RevNat4Key) String() string  { return fmt.Sprintf("%d", k.ToHost().(*RevNat4Key).Key) }
 func (k *RevNat4Key) New() bpf.MapKey { return &RevNat4Key{} }
-func (k *RevNat4Key) GetKey() uint16  { return k.Key }
+func (k *RevNat4Key) GetKey() uint32  { return uint32(k.Key) }
 
 // ToNetwork converts RevNat4Key to network byte order.
 func (k *RevNat4Key) ToNetwork() RevNatKey {
@@ -193,6 +219,33 @@ func (k *RevNat4Key) ToNetwork() RevNatKey {
 func (k *RevNat4Key) ToHost() RevNatKey {
 	h := *k
 	h.Key = byteorder.NetworkToHost16(h.Key)
+	return &h
+}
+
+type RevNat4KeyV2 struct {
+	Key uint32
+}
+
+func NewRevNat4KeyV2(value uint32) *RevNat4KeyV2 {
+	return &RevNat4KeyV2{value}
+}
+
+func (k *RevNat4KeyV2) Map() *bpf.Map   { return RevNat4MapV2 }
+func (k *RevNat4KeyV2) String() string  { return fmt.Sprintf("%d", k.ToHost().(*RevNat4KeyV2).Key) }
+func (k *RevNat4KeyV2) New() bpf.MapKey { return &RevNat4KeyV2{} }
+func (k *RevNat4KeyV2) GetKey() uint32  { return uint32(k.Key) }
+
+// ToNetwork converts RevNat4KeyV2 to network byte order.
+func (k *RevNat4KeyV2) ToNetwork() RevNatKey {
+	n := *k
+	n.Key = byteorder.HostToNetwork32(n.Key)
+	return &n
+}
+
+// ToHost converts RevNat4KeyV2 to host byte order.
+func (k *RevNat4KeyV2) ToHost() RevNatKey {
+	h := *k
+	h.Key = byteorder.NetworkToHost32(h.Key)
 	return &h
 }
 
@@ -292,7 +345,7 @@ func (k *Service4Key) ToHost() ServiceKey {
 	return &h
 }
 
-// Service4Value must match 'struct lb4_service' in "bpf/lib/common.h".
+// Service4Value is the legacy 'struct lb4_service' in "bpf/lib/common.h".
 type Service4Value struct {
 	BackendID uint32 `align:"$union0"`
 	Count     uint16 `align:"count"`
@@ -383,6 +436,96 @@ func (s *Service4Value) ToNetwork() ServiceValue {
 func (s *Service4Value) ToHost() ServiceValue {
 	h := *s
 	h.RevNat = byteorder.NetworkToHost16(h.RevNat)
+	return &h
+}
+
+// Service4V3Value must match 'struct lb4_service' in "bpf/lib/common.h".
+type Service4ValueV3 struct {
+	BackendID uint32 `align:"$union0"`
+	Count     uint16 `align:"count"`
+	Pad       uint16 `align:"pad"`
+	RevNat    uint32 `align:"rev_nat_index"`
+	Flags     uint8  `align:"flags"`
+	Flags2    uint8  `align:"flags2"`
+	QCount    uint16 `align:"qcount"`
+}
+
+func (s *Service4ValueV3) New() bpf.MapValue { return &Service4ValueV3{} }
+
+func (s *Service4ValueV3) String() string {
+	sHost := s.ToHost().(*Service4ValueV3)
+	return fmt.Sprintf("%d %d[%d] (%d) [0x%x 0x%x]", sHost.BackendID, sHost.Count, sHost.QCount, sHost.RevNat, sHost.Flags, sHost.Flags2)
+}
+
+func (s *Service4ValueV3) SetCount(count int)   { s.Count = uint16(count) }
+func (s *Service4ValueV3) GetCount() int        { return int(s.Count) }
+func (s *Service4ValueV3) SetQCount(count int)  { s.QCount = uint16(count) }
+func (s *Service4ValueV3) GetQCount() int       { return int(s.QCount) }
+func (s *Service4ValueV3) SetRevNat(id int)     { s.RevNat = uint32(id) }
+func (s *Service4ValueV3) GetRevNat() int       { return int(s.RevNat) }
+func (s *Service4ValueV3) RevNatKey() RevNatKey { return &RevNat4KeyV2{s.RevNat} }
+func (s *Service4ValueV3) SetFlags(flags uint16) {
+	s.Flags = uint8(flags & 0xff)
+	s.Flags2 = uint8(flags >> 8)
+}
+
+func (s *Service4ValueV3) GetFlags() uint16 {
+	return (uint16(s.Flags2) << 8) | uint16(s.Flags)
+}
+
+func (s *Service4ValueV3) SetSessionAffinityTimeoutSec(t uint32) error {
+	// Go doesn't support union types, so we use BackendID to access the
+	// lb4_service.affinity_timeout field. Also, for the master entry the
+	// LB algorithm can be set independently, so we need to preseve the
+	// first 8 bits and only assign to the latter 24 bits.
+	if t > sessionAffinityMask {
+		return fmt.Errorf("session affinity timeout %d does not fit into 24 bits (is larger than 16777215)", t)
+	}
+	s.BackendID = (s.BackendID & lbAlgMask) + (t & sessionAffinityMask)
+	return nil
+}
+
+func (s *Service4ValueV3) GetSessionAffinityTimeoutSec() uint32 {
+	return s.BackendID & sessionAffinityMask
+}
+
+func (s *Service4ValueV3) SetL7LBProxyPort(port uint16) {
+	// Go doesn't support union types, so we use BackendID to access the
+	// lb4_service.l7_lb_proxy_port field
+	s.BackendID = uint32(byteorder.HostToNetwork16(port))
+}
+
+func (s *Service4ValueV3) GetL7LBProxyPort() uint16 {
+	return byteorder.HostToNetwork16(uint16(s.BackendID))
+}
+
+func (s *Service4ValueV3) SetBackendID(id loadbalancer.BackendID) {
+	s.BackendID = uint32(id)
+}
+func (s *Service4ValueV3) GetBackendID() loadbalancer.BackendID {
+	return loadbalancer.BackendID(s.BackendID)
+}
+
+func (s *Service4ValueV3) GetLbAlg() loadbalancer.SVCLoadBalancingAlgorithm {
+	return loadbalancer.SVCLoadBalancingAlgorithm(uint8(uint32(s.BackendID) >> 24))
+}
+
+func (s *Service4ValueV3) SetLbAlg(lb loadbalancer.SVCLoadBalancingAlgorithm) {
+	// SessionAffinityTimeoutSec can be set independently on the latter 24 bits,
+	// so we only modify the first 8 bits.
+	s.BackendID = uint32(lb)<<24 + (s.BackendID & sessionAffinityMask)
+}
+
+func (s *Service4ValueV3) ToNetwork() ServiceValue {
+	n := *s
+	n.RevNat = byteorder.HostToNetwork32(n.RevNat)
+	return &n
+}
+
+// ToHost converts Service4ValueV3 to host byte order.
+func (s *Service4ValueV3) ToHost() ServiceValue {
+	h := *s
+	h.RevNat = byteorder.NetworkToHost32(h.RevNat)
 	return &h
 }
 

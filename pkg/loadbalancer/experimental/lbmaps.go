@@ -596,7 +596,7 @@ func (r *BPFLBMaps) UpdateMaglev(key lbmap.MaglevOuterKey, backendIDs []loadbala
 		return fmt.Errorf("updating backends: %w", err)
 	}
 	outerKey := lbmap.MaglevOuterKey{
-		RevNatID: byteorder.HostToNetwork16(key.RevNatID),
+		RevNatID: byteorder.HostToNetwork32(key.RevNatID),
 	}
 	outerValue := lbmap.MaglevOuterVal{FD: uint32(inner.FD())}
 	if ipv6 {
@@ -609,7 +609,7 @@ func (r *BPFLBMaps) UpdateMaglev(key lbmap.MaglevOuterKey, backendIDs []loadbala
 // DeleteMaglev implements lbmaps.
 func (r *BPFLBMaps) DeleteMaglev(key lbmap.MaglevOuterKey, ipv6 bool) error {
 	outerKey := lbmap.MaglevOuterKey{
-		RevNatID: byteorder.HostToNetwork16(key.RevNatID),
+		RevNatID: byteorder.HostToNetwork32(key.RevNatID),
 	}
 	ebpfmap := r.maglev4Map
 	if ipv6 {
@@ -626,7 +626,7 @@ func (r *BPFLBMaps) DumpMaglev(cb func(lbmap.MaglevOuterKey, lbmap.MaglevOuterVa
 	var errs []error
 	cbWrap := func(key, value any, ipv6 bool) {
 		maglevKey := lbmap.MaglevOuterKey{
-			RevNatID: byteorder.NetworkToHost16(key.(*lbmap.MaglevOuterKey).RevNatID),
+			RevNatID: byteorder.NetworkToHost32(key.(*lbmap.MaglevOuterKey).RevNatID),
 		}
 		maglevValue := value.(*lbmap.MaglevOuterVal)
 		inner, err := lbmap.MaglevInnerMapFromID(maglevValue.FD)

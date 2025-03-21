@@ -279,7 +279,7 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService46(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 2)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 2)
 	require.Len(t, m.lbmap.BackendByID, 2)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
@@ -291,7 +291,7 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService46(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, id1, id2)
-	require.Empty(t, m.lbmap.ServiceByID[uint16(id2)].Backends)
+	require.Empty(t, m.lbmap.ServiceByID[uint32(id2)].Backends)
 	require.Empty(t, m.lbmap.BackendByID)
 	require.Equal(t, "svc1", m.svc.svcByID[id2].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id2].svcName.Namespace)
@@ -321,7 +321,7 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService64(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 2)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 2)
 	require.Len(t, m.lbmap.BackendByID, 2)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
@@ -333,7 +333,7 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService64(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, id1, id2)
-	require.Empty(t, m.lbmap.ServiceByID[uint16(id2)].Backends)
+	require.Empty(t, m.lbmap.ServiceByID[uint32(id2)].Backends)
 	require.Empty(t, m.lbmap.BackendByID)
 	require.Equal(t, "svc1", m.svc.svcByID[id2].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id2].svcName.Namespace)
@@ -365,17 +365,17 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 2)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 2)
 	require.Len(t, m.lbmap.BackendByID, 2)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
 	require.True(t, m.svc.svcByID[id1].sessionAffinity)
 	require.Equal(t, uint32(100), m.svc.svcByID[id1].sessionAffinityTimeoutSec)
-	require.True(t, m.lbmap.ServiceByID[uint16(id1)].SessionAffinity)
-	require.Equal(t, uint32(100), m.lbmap.ServiceByID[uint16(id1)].SessionAffinityTimeoutSec)
-	require.Len(t, m.lbmap.AffinityMatch[uint16(id1)], 2)
+	require.True(t, m.lbmap.ServiceByID[uint32(id1)].SessionAffinity)
+	require.Equal(t, uint32(100), m.lbmap.ServiceByID[uint32(id1)].SessionAffinityTimeoutSec)
+	require.Len(t, m.lbmap.AffinityMatch[uint32(id1)], 2)
 	for bID := range m.lbmap.BackendByID {
-		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint16(id1)][bID])
+		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint32(id1)][bID])
 	}
 
 	// Should remove session affinity
@@ -384,13 +384,13 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 2)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 2)
 	require.Len(t, m.lbmap.BackendByID, 2)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
-	require.Empty(t, m.lbmap.AffinityMatch[uint16(id1)])
+	require.Empty(t, m.lbmap.AffinityMatch[uint32(id1)])
 	require.False(t, m.svc.svcByID[id1].sessionAffinity)
-	require.False(t, m.lbmap.ServiceByID[uint16(id1)].SessionAffinity)
+	require.False(t, m.lbmap.ServiceByID[uint32(id1)].SessionAffinity)
 	// TODO(brb) test that backends are the same
 	// TODO(brb) check that .backends =~ .backendsByHash
 
@@ -402,15 +402,15 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 1)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 1)
 	require.Len(t, m.lbmap.BackendByID, 1)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
 	require.True(t, m.svc.svcByID[id1].sessionAffinity)
 	require.Equal(t, uint32(200), m.svc.svcByID[id1].sessionAffinityTimeoutSec)
-	require.Len(t, m.lbmap.AffinityMatch[uint16(id1)], 1)
+	require.Len(t, m.lbmap.AffinityMatch[uint32(id1)], 1)
 	for bID := range m.lbmap.BackendByID {
-		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint16(id1)][bID])
+		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint32(id1)][bID])
 	}
 
 	// Should add another service
@@ -436,12 +436,12 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(2), id2)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id2)].Backends, 2)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id2)].Backends, 2)
 	require.Len(t, m.lbmap.BackendByID, 2)
 	require.Equal(t, "svc2", m.svc.svcByID[id2].svcName.Name)
 	require.Equal(t, "ns2", m.svc.svcByID[id2].svcName.Namespace)
-	require.Len(t, m.lbmap.AffinityMatch[uint16(id2)], 2)
-	require.Len(t, m.lbmap.SourceRanges[uint16(id2)], 2)
+	require.Len(t, m.lbmap.AffinityMatch[uint32(id2)], 2)
+	require.Len(t, m.lbmap.SourceRanges[uint32(id2)], 2)
 
 	// Should add IPv6 service only if IPv6 is enabled
 	require.NoError(t, err)
@@ -465,12 +465,12 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, created)
 		require.Equal(t, lb.ID(3), id3)
-		require.Len(t, m.lbmap.ServiceByID[uint16(id3)].Backends, 2)
+		require.Len(t, m.lbmap.ServiceByID[uint32(id3)].Backends, 2)
 		require.Len(t, m.lbmap.BackendByID, 4)
 		require.Equal(t, "svc3", m.svc.svcByID[id3].svcName.Name)
 		require.Equal(t, "ns3", m.svc.svcByID[id3].svcName.Namespace)
-		require.Len(t, m.lbmap.AffinityMatch[uint16(id3)], 2)
-		require.Len(t, m.lbmap.SourceRanges[uint16(id3)], 1)
+		require.Len(t, m.lbmap.AffinityMatch[uint32(id3)], 2)
+		require.Len(t, m.lbmap.SourceRanges[uint32(id3)], 1)
 
 		// Should remove the IPv6 service
 		found, err := m.svc.DeleteServiceByID(lb.ServiceID(id3))
@@ -491,7 +491,7 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService(t *testing.T) {
 	require.True(t, found)
 	require.Len(t, m.lbmap.ServiceByID, 1)
 	require.Len(t, m.lbmap.BackendByID, 2)
-	require.Empty(t, m.lbmap.AffinityMatch[uint16(id1)])
+	require.Empty(t, m.lbmap.AffinityMatch[uint32(id1)])
 
 	// Should delete both backends of service
 	p2.Backends = nil
@@ -500,12 +500,12 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, lb.ID(2), id2)
-	require.Empty(t, m.lbmap.ServiceByID[uint16(id2)].Backends)
+	require.Empty(t, m.lbmap.ServiceByID[uint32(id2)].Backends)
 	require.Empty(t, m.lbmap.BackendByID)
 	require.Equal(t, "svc2", m.svc.svcByID[id2].svcName.Name)
 	require.Equal(t, "ns2", m.svc.svcByID[id2].svcName.Namespace)
-	require.Empty(t, m.lbmap.AffinityMatch[uint16(id2)])
-	require.Len(t, m.lbmap.SourceRanges[uint16(id2)], 1)
+	require.Empty(t, m.lbmap.AffinityMatch[uint32(id2)])
+	require.Len(t, m.lbmap.SourceRanges[uint32(id2)], 1)
 
 	// Should delete the remaining service
 	found, err = m.svc.DeleteServiceByID(lb.ServiceID(id2))
@@ -536,7 +536,7 @@ func (m *ManagerTestSuite) testUpsertAndDeleteService(t *testing.T) {
 	created, id4, err := m.svc.UpsertService(p4)
 	require.True(t, created)
 	require.NoError(t, err)
-	require.Len(t, m.lbmap.SourceRanges[uint16(id4)], 1)
+	require.Len(t, m.lbmap.SourceRanges[uint32(id4)], 1)
 }
 
 func TestRestoreServices(t *testing.T) {
@@ -595,10 +595,10 @@ func TestRestoreServices(t *testing.T) {
 
 	// Services have been restored too
 	require.Len(t, m.svc.svcByID, 2)
-	require.EqualValues(t, lbmap.ServiceByID[uint16(id1)].Frontend, m.svc.svcByID[id1].frontend)
-	require.EqualValues(t, lbmap.ServiceByID[uint16(id1)].Backends, m.svc.svcByID[id1].backends)
-	require.EqualValues(t, lbmap.ServiceByID[uint16(id2)].Frontend, m.svc.svcByID[id2].frontend)
-	require.EqualValues(t, lbmap.ServiceByID[uint16(id2)].Backends, m.svc.svcByID[id2].backends)
+	require.EqualValues(t, lbmap.ServiceByID[uint32(id1)].Frontend, m.svc.svcByID[id1].frontend)
+	require.EqualValues(t, lbmap.ServiceByID[uint32(id1)].Backends, m.svc.svcByID[id1].backends)
+	require.EqualValues(t, lbmap.ServiceByID[uint32(id2)].Frontend, m.svc.svcByID[id2].frontend)
+	require.EqualValues(t, lbmap.ServiceByID[uint32(id2)].Backends, m.svc.svcByID[id2].backends)
 
 	// Session affinity too
 	require.False(t, m.svc.svcByID[id1].sessionAffinity)
@@ -619,8 +619,8 @@ func TestRestoreServices(t *testing.T) {
 	}
 
 	// Maglev lookup table too
-	require.Equal(t, len(backends1), m.lbmap.DummyMaglevTable[uint16(id1)])
-	require.Equal(t, len(backends2), m.lbmap.DummyMaglevTable[uint16(id2)])
+	require.Equal(t, len(backends1), m.lbmap.DummyMaglevTable[uint32(id1)])
+	require.Equal(t, len(backends2), m.lbmap.DummyMaglevTable[uint32(id2)])
 }
 
 func TestSyncWithK8sFinished(t *testing.T) {
@@ -652,7 +652,7 @@ func TestSyncWithK8sFinished(t *testing.T) {
 	_, _, err = m.svc.UpsertService(p2)
 	require.NoError(t, err)
 	require.Len(t, m.svc.svcByID, 2)
-	require.Len(t, m.lbmap.AffinityMatch[uint16(id1)], 2)
+	require.Len(t, m.lbmap.AffinityMatch[uint32(id1)], 2)
 
 	// Restart service, but keep the lbmap to restore services from
 	lbmap := m.svc.lbmap.(*mockmaps.LBMockMap)
@@ -678,8 +678,8 @@ func TestSyncWithK8sFinished(t *testing.T) {
 	// Add non-existing affinity matches
 	lbmap.AddAffinityMatch(20, 300)
 	lbmap.AddAffinityMatch(20, 301)
-	lbmap.AddAffinityMatch(uint16(id1), 302)
-	lbmap.AddAffinityMatch(uint16(id2), 305)
+	lbmap.AddAffinityMatch(uint32(id1), 302)
+	lbmap.AddAffinityMatch(uint32(id2), 305)
 
 	// cilium-agent finished the initialization, and thus SyncWithK8sFinished
 	// is called
@@ -699,9 +699,9 @@ func TestSyncWithK8sFinished(t *testing.T) {
 	// Check that the non-existing affinity matches were removed
 	matches, _ := lbmap.DumpAffinityMatches()
 	require.Len(t, matches, 1) // id2 svc has updated session affinity
-	require.Len(t, matches[uint16(id2)], 2)
-	for _, b := range lbmap.ServiceByID[uint16(id2)].Backends {
-		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint16(id2)][b.ID])
+	require.Len(t, matches[uint32(id2)], 2)
+	for _, b := range lbmap.ServiceByID[uint32(id2)].Backends {
+		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint32(id2)][b.ID])
 	}
 }
 
@@ -772,8 +772,8 @@ func TestRestoreServiceWithStaleBackends(t *testing.T) {
 			_, id1, err := svc.upsertService(service("foo", "bar", "172.16.0.1", backendAddrs...))
 			require.NoError(t, err, "Failed to upsert service")
 
-			require.Contains(t, lbmap.ServiceByID, uint16(id1), "lbmap not populated correctly")
-			require.ElementsMatch(t, backendAddrs, toBackendAddrs(lbmap.ServiceByID[uint16(id1)].Backends), "lbmap not populated correctly")
+			require.Contains(t, lbmap.ServiceByID, uint32(id1), "lbmap not populated correctly")
+			require.ElementsMatch(t, backendAddrs, toBackendAddrs(lbmap.ServiceByID[uint32(id1)].Backends), "lbmap not populated correctly")
 			require.ElementsMatch(t, backendAddrs, toBackendAddrs(slices.Collect(maps.Values(lbmap.BackendByID))), "lbmap not populated correctly")
 
 			// Recreate the Service structure, but keep the lbmap to restore services from
@@ -788,8 +788,8 @@ func TestRestoreServiceWithStaleBackends(t *testing.T) {
 			require.Equal(t, id1, id1bis, "Service ID changed unexpectedly")
 
 			// No backend should have been removed yet
-			require.Contains(t, lbmap.ServiceByID, uint16(id1), "lbmap incorrectly modified")
-			require.ElementsMatch(t, backendAddrs, toBackendAddrs(lbmap.ServiceByID[uint16(id1)].Backends), "lbmap incorrectly modified")
+			require.Contains(t, lbmap.ServiceByID, uint32(id1), "lbmap incorrectly modified")
+			require.ElementsMatch(t, backendAddrs, toBackendAddrs(lbmap.ServiceByID[uint32(id1)].Backends), "lbmap incorrectly modified")
 			require.ElementsMatch(t, backendAddrs, toBackendAddrs(slices.Collect(maps.Values(lbmap.BackendByID))), "lbmap incorrectly modified")
 
 			// Let's do it once more
@@ -798,8 +798,8 @@ func TestRestoreServiceWithStaleBackends(t *testing.T) {
 			require.Equal(t, id1, id1ter, "Service ID changed unexpectedly")
 
 			// No backend should have been removed yet
-			require.Contains(t, lbmap.ServiceByID, uint16(id1), "lbmap incorrectly modified")
-			require.ElementsMatch(t, backendAddrs, toBackendAddrs(lbmap.ServiceByID[uint16(id1)].Backends), "lbmap incorrectly modified")
+			require.Contains(t, lbmap.ServiceByID, uint32(id1), "lbmap incorrectly modified")
+			require.ElementsMatch(t, backendAddrs, toBackendAddrs(lbmap.ServiceByID[uint32(id1)].Backends), "lbmap incorrectly modified")
 			require.ElementsMatch(t, backendAddrs, toBackendAddrs(slices.Collect(maps.Values(lbmap.BackendByID))), "lbmap incorrectly modified")
 
 			svcID := k8s.ServiceID{Namespace: "foo", Name: "bar"}
@@ -811,12 +811,12 @@ func TestRestoreServiceWithStaleBackends(t *testing.T) {
 			stale, err := svc.SyncWithK8sFinished(tt.localOnly, localServices)
 			require.NoError(t, err, "Failed to trigger garbage collection")
 
-			require.Contains(t, lbmap.ServiceByID, uint16(id1), "service incorrectly removed from lbmap")
+			require.Contains(t, lbmap.ServiceByID, uint32(id1), "service incorrectly removed from lbmap")
 
 			// Stale backends should now have been removed (if appropriate)
 			if tt.expectStaleBackends {
 				require.Empty(t, stale)
-				require.ElementsMatch(t, backendAddrs, toBackendAddrs(lbmap.ServiceByID[uint16(id1)].Backends), "stale backends should not have been removed from lbmap")
+				require.ElementsMatch(t, backendAddrs, toBackendAddrs(lbmap.ServiceByID[uint32(id1)].Backends), "stale backends should not have been removed from lbmap")
 				require.ElementsMatch(t, backendAddrs, toBackendAddrs(slices.Collect(maps.Values(lbmap.BackendByID))), "stale backends should not have been removed from lbmap")
 			} else {
 				require.ElementsMatch(t, stale, []k8s.ServiceID{svcID})
@@ -825,7 +825,7 @@ func TestRestoreServiceWithStaleBackends(t *testing.T) {
 				_, _, err := svc.upsertService(service("foo", "bar", "172.16.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.5"))
 				require.NoError(t, err, "Failed to upsert service")
 
-				require.ElementsMatch(t, finalBackendAddrs, toBackendAddrs(lbmap.ServiceByID[uint16(id1)].Backends), "stale backends not correctly removed from lbmap")
+				require.ElementsMatch(t, finalBackendAddrs, toBackendAddrs(lbmap.ServiceByID[uint32(id1)].Backends), "stale backends not correctly removed from lbmap")
 				require.ElementsMatch(t, finalBackendAddrs, toBackendAddrs(slices.Collect(maps.Values(lbmap.BackendByID))), "stale backends not correctly removed from lbmap")
 			}
 		})
@@ -1169,7 +1169,7 @@ func TestLocalRedirectLocalBackendSelection(t *testing.T) {
 	// Only node-local backends are selected
 	require.Equal(t, len(localBackends), len(svc.backends))
 
-	svcFromLbMap, ok := m.lbmap.ServiceByID[uint16(id)]
+	svcFromLbMap, ok := m.lbmap.ServiceByID[uint32(id)]
 	require.True(t, ok)
 	require.Equal(t, len(svc.backends), len(svcFromLbMap.Backends))
 }
@@ -1290,28 +1290,28 @@ func TestUpsertServiceWithTerminatingBackends(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id1)].Backends))
-	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id1)].Backends))
+	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 
 	p.Backends[0].State = lb.BackendStateTerminating
 
 	_, _, err = m.svc.UpsertService(p)
 
 	require.NoError(t, err)
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id1)].Backends))
-	require.Equal(t, len(backends1), m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id1)].Backends))
+	require.Equal(t, len(backends1), m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 	// Sorted active backends by ID first followed by non-active
-	require.Equal(t, lb.BackendID(2), m.lbmap.ServiceByID[uint16(id1)].Backends[0].ID)
-	require.Equal(t, lb.BackendID(3), m.lbmap.ServiceByID[uint16(id1)].Backends[1].ID)
-	require.Equal(t, lb.BackendID(1), m.lbmap.ServiceByID[uint16(id1)].Backends[2].ID)
+	require.Equal(t, lb.BackendID(2), m.lbmap.ServiceByID[uint32(id1)].Backends[0].ID)
+	require.Equal(t, lb.BackendID(3), m.lbmap.ServiceByID[uint32(id1)].Backends[1].ID)
+	require.Equal(t, lb.BackendID(1), m.lbmap.ServiceByID[uint32(id1)].Backends[2].ID)
 	require.Len(t, m.lbmap.BackendByID, 3)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
-	require.Len(t, m.lbmap.AffinityMatch[uint16(id1)], 3)
+	require.Len(t, m.lbmap.AffinityMatch[uint32(id1)], 3)
 	for bID := range m.lbmap.BackendByID {
-		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint16(id1)][bID])
+		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint32(id1)][bID])
 	}
-	require.Equal(t, len(backends1), m.lbmap.DummyMaglevTable[uint16(id1)])
+	require.Equal(t, len(backends1), m.lbmap.DummyMaglevTable[uint32(id1)])
 
 	// Delete terminating backends.
 	p.Backends = []*lb.Backend{}
@@ -1321,11 +1321,11 @@ func TestUpsertServiceWithTerminatingBackends(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Empty(t, m.lbmap.ServiceByID[uint16(id1)].Backends)
+	require.Empty(t, m.lbmap.ServiceByID[uint32(id1)].Backends)
 	require.Empty(t, m.lbmap.BackendByID)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
-	require.Empty(t, m.lbmap.AffinityMatch[uint16(id1)])
+	require.Empty(t, m.lbmap.AffinityMatch[uint32(id1)])
 }
 
 // TestUpsertServiceWithOnlyTerminatingBackends tests that a terminating backend is still
@@ -1352,8 +1352,8 @@ func TestUpsertServiceWithOnlyTerminatingBackends(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 2)
-	require.Equal(t, 2, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 2)
+	require.Equal(t, 2, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
 
@@ -1365,9 +1365,9 @@ func TestUpsertServiceWithOnlyTerminatingBackends(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 2)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 2)
 	require.Len(t, m.lbmap.BackendByID, 2)
-	require.Equal(t, 1, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+	require.Equal(t, 1, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 
 	// Delete terminating backends.
 	p.Backends = p.Backends[:1]
@@ -1377,9 +1377,9 @@ func TestUpsertServiceWithOnlyTerminatingBackends(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 1)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 1)
 	require.Len(t, m.lbmap.BackendByID, 1)
-	require.Len(t, m.lbmap.AffinityMatch[uint16(id1)], 1)
+	require.Len(t, m.lbmap.AffinityMatch[uint32(id1)], 1)
 
 	// The terminating backend should be considered since there are no more active
 	p.Backends[0].State = lb.BackendStateTerminating
@@ -1389,9 +1389,9 @@ func TestUpsertServiceWithOnlyTerminatingBackends(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 1)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 1)
 	require.Len(t, m.lbmap.BackendByID, 1)
-	require.Equal(t, 0, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+	require.Equal(t, 0, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 
 	// Delete terminating backends.
 	p.Backends = []*lb.Backend{}
@@ -1401,11 +1401,11 @@ func TestUpsertServiceWithOnlyTerminatingBackends(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Empty(t, m.lbmap.ServiceByID[uint16(id1)].Backends)
+	require.Empty(t, m.lbmap.ServiceByID[uint32(id1)].Backends)
 	require.Empty(t, m.lbmap.BackendByID)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
-	require.Empty(t, m.lbmap.AffinityMatch[uint16(id1)])
+	require.Empty(t, m.lbmap.AffinityMatch[uint32(id1)])
 }
 
 // Tests whether upsert service provisions the Maglev LUT for ClusterIP,
@@ -1437,11 +1437,11 @@ func TestUpsertServiceWithExternalClusterIP(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 2)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 2)
 	require.Len(t, m.lbmap.BackendByID, 2)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
-	require.Equal(t, len(backends), m.lbmap.DummyMaglevTable[uint16(id1)])
+	require.Equal(t, len(backends), m.lbmap.DummyMaglevTable[uint32(id1)])
 }
 
 // Tests whether upsert service doesn't provision the Maglev LUT for ClusterIP,
@@ -1466,11 +1466,11 @@ func TestUpsertServiceWithOutExternalClusterIP(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 2)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 2)
 	require.Len(t, m.lbmap.BackendByID, 2)
 	require.Equal(t, "svc1", m.svc.svcByID[id1].svcName.Name)
 	require.Equal(t, "ns1", m.svc.svcByID[id1].svcName.Namespace)
-	require.Equal(t, 0, m.lbmap.DummyMaglevTable[uint16(id1)])
+	require.Equal(t, 0, m.lbmap.DummyMaglevTable[uint32(id1)])
 }
 
 // Tests terminating backend entries are not removed after service restore.
@@ -1498,8 +1498,8 @@ func TestRestoreServiceWithTerminatingBackends(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id1)].Backends))
-	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id1)].Backends))
+	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 
 	p.Backends[0].State = lb.BackendStateTerminating
 
@@ -1529,11 +1529,11 @@ func TestRestoreServiceWithTerminatingBackends(t *testing.T) {
 	// Affinity matches including terminating ones were restored
 	matches, _ := m.lbmap.DumpAffinityMatches()
 	require.Len(t, matches, 1)
-	require.Len(t, matches[uint16(id1)], 3)
-	for _, b := range m.lbmap.ServiceByID[uint16(id1)].Backends {
-		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint16(id1)][b.ID])
+	require.Len(t, matches[uint32(id1)], 3)
+	for _, b := range m.lbmap.ServiceByID[uint32(id1)].Backends {
+		require.Equal(t, struct{}{}, m.lbmap.AffinityMatch[uint32(id1)][b.ID])
 	}
-	require.Equal(t, len(backends1), m.lbmap.DummyMaglevTable[uint16(id1)])
+	require.Equal(t, len(backends1), m.lbmap.DummyMaglevTable[uint32(id1)])
 }
 
 // l7 load balancer service should be able to override any service type
@@ -1881,10 +1881,10 @@ func TestUpdateBackendsState(t *testing.T) {
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id1].backends[1].State)
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id2].backends[0].State)
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id2].backends[1].State)
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id1)].Backends))
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id2)].Backends))
-	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint16(id1)])
-	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint16(id2)])
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id1)].Backends))
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id2)].Backends))
+	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint32(id1)])
+	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint32(id2)])
 	require.Equal(t, len(backends), len(m.lbmap.BackendByID))
 	// Backend states are persisted in the map.
 	require.Equal(t, lb.BackendStateActive, m.lbmap.BackendByID[1].State)
@@ -1902,10 +1902,10 @@ func TestUpdateBackendsState(t *testing.T) {
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id1].backends[1].State)
 	require.Equal(t, lb.BackendStateQuarantined, m.svc.svcByID[id2].backends[0].State)
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id2].backends[1].State)
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id1)].Backends))
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id2)].Backends))
-	require.Equal(t, 1, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
-	require.Equal(t, 1, m.lbmap.SvcActiveBackendsCount[uint16(id2)])
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id1)].Backends))
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id2)].Backends))
+	require.Equal(t, 1, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
+	require.Equal(t, 1, m.lbmap.SvcActiveBackendsCount[uint32(id2)])
 	require.Equal(t, len(backends), len(m.lbmap.BackendByID))
 	require.ElementsMatch(t, svcs, []lb.L3n4Addr{p1.Frontend.L3n4Addr, p2.Frontend.L3n4Addr})
 	// Updated backend states are persisted in the map.
@@ -1924,10 +1924,10 @@ func TestUpdateBackendsState(t *testing.T) {
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id1].backends[1].State)
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id2].backends[0].State)
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id2].backends[1].State)
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id1)].Backends))
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id2)].Backends))
-	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint16(id1)])
-	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint16(id2)])
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id1)].Backends))
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id2)].Backends))
+	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint32(id1)])
+	require.Equal(t, len(backends), m.lbmap.SvcActiveBackendsCount[uint32(id2)])
 	require.Equal(t, len(backends), len(m.lbmap.BackendByID))
 	require.ElementsMatch(t, svcs, []lb.L3n4Addr{p1.Frontend.L3n4Addr, p2.Frontend.L3n4Addr})
 	// Updated backend states are persisted in the map.
@@ -1965,7 +1965,7 @@ func TestRestoreServiceWithBackendStates(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id1)].Backends))
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id1)].Backends))
 	require.Equal(t, len(backends), len(m.svc.backendByHash))
 
 	// Update backend states.
@@ -2001,7 +2001,7 @@ func TestRestoreServiceWithBackendStates(t *testing.T) {
 		}
 	}
 	require.Equal(t, len(backends), statesMatched)
-	require.Equal(t, 1, m.lbmap.DummyMaglevTable[uint16(id1)])
+	require.Equal(t, 1, m.lbmap.DummyMaglevTable[uint32(id1)])
 }
 
 func TestUpsertServiceWithZeroWeightBackends(t *testing.T) {
@@ -2033,7 +2033,7 @@ func TestUpsertServiceWithZeroWeightBackends(t *testing.T) {
 
 	require.NoError(t, err)
 	require.True(t, created)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 3)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 3)
 	require.Len(t, m.lbmap.BackendByID, 3)
 	hash := backends[1].L3n4Addr.Hash()
 	require.Equal(t, lb.BackendStateMaintenance, m.svc.backendByHash[hash].State)
@@ -2041,7 +2041,7 @@ func TestUpsertServiceWithZeroWeightBackends(t *testing.T) {
 	hash2 := backends[2].L3n4Addr.Hash()
 	require.Equal(t, lb.BackendStateActive, m.svc.backendByHash[hash2].State)
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id1].backendByHash[hash2].State)
-	require.Equal(t, 2, m.lbmap.DummyMaglevTable[uint16(id1)])
+	require.Equal(t, 2, m.lbmap.DummyMaglevTable[uint32(id1)])
 
 	// Update existing backend weight
 	p.Backends[2].Weight = 0
@@ -2051,10 +2051,10 @@ func TestUpsertServiceWithZeroWeightBackends(t *testing.T) {
 
 	require.NoError(t, err)
 	require.False(t, created)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 3)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 3)
 	require.Len(t, m.lbmap.BackendByID, 3)
 	require.Equal(t, lb.BackendStateMaintenance, m.svc.svcByID[id1].backendByHash[hash2].State)
-	require.Equal(t, 1, m.lbmap.DummyMaglevTable[uint16(id1)])
+	require.Equal(t, 1, m.lbmap.DummyMaglevTable[uint32(id1)])
 
 	// Delete backends with weight 0
 	p.Backends = backends[:1]
@@ -2063,9 +2063,9 @@ func TestUpsertServiceWithZeroWeightBackends(t *testing.T) {
 
 	require.NoError(t, err)
 	require.False(t, created)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 1)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 1)
 	require.Len(t, m.lbmap.BackendByID, 1)
-	require.Equal(t, 1, m.lbmap.DummyMaglevTable[uint16(id1)])
+	require.Equal(t, 1, m.lbmap.DummyMaglevTable[uint32(id1)])
 }
 
 func TestUpdateBackendsStateWithBackendSharedAcrossServices(t *testing.T) {
@@ -2124,7 +2124,7 @@ func TestUpdateBackendsStateWithBackendSharedAcrossServices(t *testing.T) {
 
 	// Assert expected backend states after consecutive upsert service calls that share the backends.
 	require.NoError(t, err)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 3)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 3)
 	require.Len(t, m.lbmap.BackendByID, 3)
 	require.Equal(t, lb.BackendStateActive, m.svc.backendByHash[hash0].State)
 	require.Equal(t, lb.BackendStateActive, m.svc.backendByHash[hash1].State)
@@ -2254,11 +2254,11 @@ func TestTrafficPolicy(t *testing.T) {
 	require.True(t, created)
 	require.NoError(t, err)
 
-	svcFromLbMap1, ok := m.lbmap.ServiceByID[uint16(id1)]
+	svcFromLbMap1, ok := m.lbmap.ServiceByID[uint32(id1)]
 	require.True(t, ok)
 	require.Equal(t, len(localBackends), len(svcFromLbMap1.Backends))
 
-	svcFromLbMap2, ok := m.lbmap.ServiceByID[uint16(id2)]
+	svcFromLbMap2, ok := m.lbmap.ServiceByID[uint32(id2)]
 	require.True(t, ok)
 	require.Equal(t, len(allBackends), len(svcFromLbMap2.Backends))
 
@@ -2269,7 +2269,7 @@ func TestTrafficPolicy(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, id1, id3)
 
-	svcFromLbMap3, ok := m.lbmap.ServiceByID[uint16(id1)]
+	svcFromLbMap3, ok := m.lbmap.ServiceByID[uint32(id1)]
 	require.True(t, ok)
 	require.Equal(t, len(allBackends), len(svcFromLbMap3.Backends))
 
@@ -2280,7 +2280,7 @@ func TestTrafficPolicy(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, id2, id4)
 
-	svcFromLbMap4, ok := m.lbmap.ServiceByID[uint16(id2)]
+	svcFromLbMap4, ok := m.lbmap.ServiceByID[uint32(id2)]
 	require.True(t, ok)
 	require.Equal(t, len(localBackends), len(svcFromLbMap4.Backends))
 
@@ -2311,7 +2311,7 @@ func TestDeleteServiceWithTerminatingBackends(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, created)
 	require.Equal(t, lb.ID(1), id1)
-	require.Len(t, m.lbmap.ServiceByID[uint16(id1)].Backends, 2)
+	require.Len(t, m.lbmap.ServiceByID[uint32(id1)].Backends, 2)
 	require.Len(t, m.lbmap.BackendByID, 2)
 	require.Equal(t, lb.ServiceName{Name: "svc1", Namespace: "ns1"}, m.svc.svcByID[id1].svcName)
 
@@ -2343,7 +2343,7 @@ func TestRestoreServicesWithLeakedBackends(t *testing.T) {
 
 	require.NoError(t, err1)
 	require.Equal(t, lb.ID(1), id1)
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id1)].Backends))
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id1)].Backends))
 	require.Equal(t, len(backends), len(m.lbmap.BackendByID))
 
 	// Simulate leaked backends with various leaked scenarios.
@@ -2369,7 +2369,7 @@ func TestRestoreServicesWithLeakedBackends(t *testing.T) {
 	// Restore services from lbmap
 	err := m.svc.RestoreServices()
 	require.NoError(t, err)
-	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint16(id1)].Backends))
+	require.Equal(t, len(backends), len(m.lbmap.ServiceByID[uint32(id1)].Backends))
 	// Leaked backends should be deleted.
 	require.Equal(t, len(backends), len(m.lbmap.BackendByID))
 }
@@ -2511,7 +2511,7 @@ func TestHealthCheckCB(t *testing.T) {
 
 	require.NoError(t, err1)
 	require.Equal(t, id1, lb.ID(1))
-	require.Equal(t, len(m.lbmap.ServiceByID[uint16(id1)].Backends), len(backends))
+	require.Equal(t, len(m.lbmap.ServiceByID[uint32(id1)].Backends), len(backends))
 	require.Equal(t, len(m.lbmap.BackendByID), len(backends))
 	require.Equal(t, lb.BackendStateActive, m.svc.svcByID[id1].backends[0].State)
 
@@ -2526,7 +2526,7 @@ func TestHealthCheckCB(t *testing.T) {
 	require.EventuallyWithT(t, func(ct *assert.CollectT) {
 		assert.Equal(ct, len(m.lbmap.BackendByID), len(backends))
 		assert.Equal(ct, lb.BackendStateQuarantined, m.svc.svcByID[id1].backends[0].State)
-		assert.Equal(ct, 1, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+		assert.Equal(ct, 1, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 	}, 3*time.Second, 100*time.Millisecond)
 }
 
@@ -2618,17 +2618,17 @@ func TestNotifyHealthCheckUpdatesSubscriber(t *testing.T) {
 
 	require.NoError(t, err1)
 	require.Equal(t, id1, lb.ID(1))
-	require.Equal(t, len(m.lbmap.ServiceByID[uint16(id1)].Backends), len(backends))
+	require.Equal(t, len(m.lbmap.ServiceByID[uint32(id1)].Backends), len(backends))
 	require.Equal(t, len(m.lbmap.BackendByID), len(backends))
-	require.Equal(t, 2, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+	require.Equal(t, 2, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 
 	_, id2, err2 := m.svc.UpsertService(p2)
 
 	require.NoError(t, err2)
 	require.Equal(t, id2, lb.ID(2))
-	require.Equal(t, len(m.lbmap.ServiceByID[uint16(id2)].Backends), len(backends))
+	require.Equal(t, len(m.lbmap.ServiceByID[uint32(id2)].Backends), len(backends))
 	require.Equal(t, len(m.lbmap.BackendByID), len(backends))
-	require.Equal(t, 2, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+	require.Equal(t, 2, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 
 	go func() {
 		_, ok := <-cbCh1
@@ -2659,7 +2659,7 @@ func TestNotifyHealthCheckUpdatesSubscriber(t *testing.T) {
 		})
 
 	require.EventuallyWithT(t, func(ct *assert.CollectT) {
-		assert.Equal(ct, 1, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+		assert.Equal(ct, 1, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 	}, time.Second*3, time.Millisecond*100)
 
 	wg.Wait()
@@ -2676,7 +2676,7 @@ func TestNotifyHealthCheckUpdatesSubscriber(t *testing.T) {
 			BeState: lb.BackendStateActive,
 		})
 	require.EventuallyWithT(t, func(ct *assert.CollectT) {
-		assert.Equal(ct, 2, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+		assert.Equal(ct, 2, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 	}, time.Second*3, time.Millisecond*100)
 
 	// Subscriber callback is not executed.
@@ -2717,8 +2717,8 @@ func TestNotifyHealthCheckUpdatesSubscriber(t *testing.T) {
 
 	require.NoError(t, err1)
 	require.Equal(t, id1, lb.ID(3))
-	require.Equal(t, len(m.lbmap.ServiceByID[uint16(id1)].Backends), len(backends))
-	require.Equal(t, 1, m.lbmap.SvcActiveBackendsCount[uint16(id1)])
+	require.Equal(t, len(m.lbmap.ServiceByID[uint32(id1)].Backends), len(backends))
+	require.Equal(t, 1, m.lbmap.SvcActiveBackendsCount[uint32(id1)])
 
 	// Send a CB service event
 	m.svc.healthCheckCallback(HealthCheckCBSvcEvent,
