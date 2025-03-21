@@ -61,7 +61,7 @@ enum {
 				 * arg2: direction
 				 * arg3: scope
 				 */
-	DBG_CT_CREATED4,        /* arg1: (unused << 16) | rev_nat_index
+	DBG_CT_CREATED4,        /* arg1: (unused << 32) | rev_nat_index
 				 * arg2: src sec-id
 				 * arg3: unused
 				 */
@@ -73,7 +73,7 @@ enum {
 				 * arg2: direction
 				 * arg3: scope
 				 */
-	DBG_CT_CREATED6,        /* arg1: (unused << 16) | rev_nat_index
+	DBG_CT_CREATED6,        /* arg1: (unused << 32) | rev_nat_index
 				 * arg2: src sec-id
 				 * arg3: unused
 				 */

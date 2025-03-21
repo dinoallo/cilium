@@ -34,7 +34,7 @@ struct {
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_REV_NAT_MAP_MAX_ENTRIES);
 	__uint(map_flags, CONDITIONAL_PREALLOC);
-} cilium_lb6_reverse_nat __section_maps_btf;
+} cilium_lb6_reverse_nat_v2 __section_maps_btf;
 
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
@@ -43,7 +43,7 @@ struct {
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_SERVICE_MAP_MAX_ENTRIES);
 	__uint(map_flags, CONDITIONAL_PREALLOC);
-} cilium_lb6_services_v2 __section_maps_btf;
+} cilium_lb6_services_v3 __section_maps_btf;
 
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
@@ -61,7 +61,7 @@ struct {
 	__type(value, struct lb_affinity_val);
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_AFFINITY_MAP_MAX_ENTRIES);
-} cilium_lb6_affinity __section_maps_btf;
+} cilium_lb6_affinity_v2 __section_maps_btf;
 #endif
 
 #ifdef ENABLE_SRC_RANGE_CHECK
@@ -72,7 +72,7 @@ struct {
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, LB6_SRC_RANGE_MAP_SIZE);
 	__uint(map_flags, BPF_F_NO_PREALLOC);
-} cilium_lb6_source_range __section_maps_btf;
+} cilium_lb6_source_range_v2 __section_maps_btf;
 #endif
 
 #ifdef ENABLE_HEALTH_CHECK
@@ -88,7 +88,7 @@ struct {
 #if defined(LB_SELECTION_PER_SERVICE) || LB_SELECTION == LB_SELECTION_MAGLEV
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH_OF_MAPS);
-	__type(key, __u16);
+	__type(key, __u32);
 	__type(value, __u32);
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_MAGLEV_MAP_MAX_ENTRIES);
@@ -116,12 +116,12 @@ struct {
 
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
-	__type(key, __u16);
+	__type(key, __u32);
 	__type(value, struct lb4_reverse_nat);
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_REV_NAT_MAP_MAX_ENTRIES);
 	__uint(map_flags, CONDITIONAL_PREALLOC);
-} cilium_lb4_reverse_nat __section_maps_btf;
+} cilium_lb4_reverse_nat_v2 __section_maps_btf;
 
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
@@ -130,7 +130,7 @@ struct {
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_SERVICE_MAP_MAX_ENTRIES);
 	__uint(map_flags, CONDITIONAL_PREALLOC);
-} cilium_lb4_services_v2 __section_maps_btf;
+} cilium_lb4_services_v3 __section_maps_btf;
 
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
@@ -148,7 +148,7 @@ struct {
 	__type(value, struct lb_affinity_val);
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_AFFINITY_MAP_MAX_ENTRIES);
-} cilium_lb4_affinity __section_maps_btf;
+} cilium_lb4_affinity_v2 __section_maps_btf;
 #endif
 
 #ifdef ENABLE_SRC_RANGE_CHECK
@@ -159,7 +159,7 @@ struct {
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, LB4_SRC_RANGE_MAP_SIZE);
 	__uint(map_flags, BPF_F_NO_PREALLOC);
-} cilium_lb4_source_range __section_maps_btf;
+} cilium_lb4_source_range_v2 __section_maps_btf;
 #endif
 
 #ifdef ENABLE_HEALTH_CHECK
@@ -175,7 +175,7 @@ struct {
 #if defined(LB_SELECTION_PER_SERVICE) || LB_SELECTION == LB_SELECTION_MAGLEV
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH_OF_MAPS);
-	__type(key, __u16);
+	__type(key, __u32);
 	__type(value, __u32);
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_MAGLEV_MAP_MAX_ENTRIES);
@@ -199,7 +199,7 @@ struct {
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_AFFINITY_MAP_MAX_ENTRIES);
 	__uint(map_flags, CONDITIONAL_PREALLOC);
-} cilium_lb_affinity_match __section_maps_btf;
+} cilium_lb_affinity_match_v2 __section_maps_btf;
 #endif
 
 #ifdef LB_DEBUG
@@ -525,11 +525,11 @@ static __always_inline int __lb6_rev_nat(struct __ctx_buff *ctx, int l4_off,
 }
 
 static __always_inline struct lb6_reverse_nat *
-lb6_lookup_rev_nat_entry(struct __ctx_buff *ctx __maybe_unused, __u16 index)
+lb6_lookup_rev_nat_entry(struct __ctx_buff *ctx __maybe_unused, __u32 index)
 {
 	cilium_dbg_lb(ctx, DBG_LB6_REVERSE_NAT_LOOKUP, index, 0);
 
-	return map_lookup_elem(&cilium_lb6_reverse_nat, &index);
+	return map_lookup_elem(&cilium_lb6_reverse_nat_v2, &index);
 }
 
 /** Perform IPv6 reverse NAT based on reverse NAT index
@@ -539,7 +539,7 @@ lb6_lookup_rev_nat_entry(struct __ctx_buff *ctx __maybe_unused, __u16 index)
  * @arg tuple		tuple
  */
 static __always_inline int lb6_rev_nat(struct __ctx_buff *ctx, int l4_off,
-				       __u16 index, struct ipv6_ct_tuple *tuple)
+				       __u32 index, struct ipv6_ct_tuple *tuple)
 {
 	struct lb6_reverse_nat *nat;
 
@@ -638,7 +638,7 @@ bool lb6_src_range_ok(const struct lb6_service *svc __maybe_unused,
 		.addr = *saddr,
 	};
 
-	if (map_lookup_elem(&cilium_lb6_source_range, &key))
+	if (map_lookup_elem(&cilium_lb6_source_range_v2, &key))
 		verdict = true;
 
 	return verdict ^ !!(svc->flags2 & SVC_FLAG_SOURCE_RANGE_DENY);
@@ -665,13 +665,13 @@ struct lb6_service *lb6_lookup_service(struct lb6_key *key,
 
 	key->scope = LB_LOOKUP_SCOPE_EXT;
 	key->backend_slot = 0;
-	svc = map_lookup_elem(&cilium_lb6_services_v2, key);
+	svc = map_lookup_elem(&cilium_lb6_services_v3, key);
 
 #if defined(ENABLE_SERVICE_PROTOCOL_DIFFERENTIATION)
 	/* If there are no elements for a specific protocol, check for ANY entries. */
 	if (!svc && key->proto != 0) {
 		key->proto = 0;
-		svc = map_lookup_elem(&cilium_lb6_services_v2, key);
+		svc = map_lookup_elem(&cilium_lb6_services_v3, key);
 	}
 #endif
 
@@ -679,7 +679,7 @@ struct lb6_service *lb6_lookup_service(struct lb6_key *key,
 		if (!scope_switch || !lb6_svc_is_two_scopes(svc))
 			return svc;
 		key->scope = LB_LOOKUP_SCOPE_INT;
-		svc = map_lookup_elem(&cilium_lb6_services_v2, key);
+		svc = map_lookup_elem(&cilium_lb6_services_v3, key);
 	}
 
 	return svc;
@@ -705,7 +705,7 @@ lb6_lookup_backend(struct __ctx_buff *ctx __maybe_unused, __u32 backend_id)
 static __always_inline
 struct lb6_service *__lb6_lookup_backend_slot(struct lb6_key *key)
 {
-	return map_lookup_elem(&cilium_lb6_services_v2, key);
+	return map_lookup_elem(&cilium_lb6_services_v3, key);
 }
 
 static __always_inline
@@ -855,7 +855,7 @@ __lb6_affinity_backend_id(const struct lb6_service *svc, bool netns_cookie,
 	else
 		ipv6_addr_copy_unaligned(&key.client_id.client_ip, &id->client_ip);
 
-	val = map_lookup_elem(&cilium_lb6_affinity, &key);
+	val = map_lookup_elem(&cilium_lb6_affinity_v2, &key);
 	if (val != NULL) {
 		__u32 now = (__u32)bpf_mono_now();
 		struct lb_affinity_match match = {
@@ -865,12 +865,12 @@ __lb6_affinity_backend_id(const struct lb6_service *svc, bool netns_cookie,
 
 		if (READ_ONCE(val->last_used) +
 		    bpf_sec_to_mono(lb6_affinity_timeout(svc)) <= now) {
-			map_delete_elem(&cilium_lb6_affinity, &key);
+			map_delete_elem(&cilium_lb6_affinity_v2, &key);
 			return 0;
 		}
 
-		if (!map_lookup_elem(&cilium_lb_affinity_match, &match)) {
-			map_delete_elem(&cilium_lb6_affinity, &key);
+		if (!map_lookup_elem(&cilium_lb_affinity_match_v2, &match)) {
+			map_delete_elem(&cilium_lb6_affinity_v2, &key);
 			return 0;
 		}
 
@@ -907,7 +907,7 @@ __lb6_update_affinity(const struct lb6_service *svc, bool netns_cookie,
 	else
 		ipv6_addr_copy_unaligned(&key.client_id.client_ip, &id->client_ip);
 
-	map_update_elem(&cilium_lb6_affinity, &key, &val, 0);
+	map_update_elem(&cilium_lb6_affinity_v2, &key, &val, 0);
 }
 
 static __always_inline void
@@ -1143,8 +1143,8 @@ static __always_inline void lb6_ctx_restore_state(struct __ctx_buff *ctx,
 						 __u16 *proxy_port,
 						 bool clear)
 {
-	state->rev_nat_index = clear ? (__u16)ctx_load_and_clear_meta(ctx, CB_CT_STATE) :
-				       (__u16)ctx_load_meta(ctx, CB_CT_STATE);
+	state->rev_nat_index = clear ? ctx_load_and_clear_meta(ctx, CB_CT_STATE) :
+				       ctx_load_meta(ctx, CB_CT_STATE);
 
 	/* No loopback support for IPv6, see lb6_local() above. */
 
@@ -1258,11 +1258,11 @@ static __always_inline int __lb4_rev_nat(struct __ctx_buff *ctx, int l3_off, int
 }
 
 static __always_inline struct lb4_reverse_nat *
-lb4_lookup_rev_nat_entry(struct __ctx_buff *ctx __maybe_unused, __u16 index)
+lb4_lookup_rev_nat_entry(struct __ctx_buff *ctx __maybe_unused, __u32 index)
 {
 	cilium_dbg_lb(ctx, DBG_LB4_REVERSE_NAT_LOOKUP, index, 0);
 
-	return map_lookup_elem(&cilium_lb4_reverse_nat, &index);
+	return map_lookup_elem(&cilium_lb4_reverse_nat_v2, &index);
 }
 
 /** Perform IPv4 reverse NAT based on reverse NAT index
@@ -1274,7 +1274,7 @@ lb4_lookup_rev_nat_entry(struct __ctx_buff *ctx __maybe_unused, __u16 index)
  * @arg tuple		tuple
  */
 static __always_inline int lb4_rev_nat(struct __ctx_buff *ctx, int l3_off, int l4_off,
-				       __u16 index, bool loopback,
+				       __u32 index, bool loopback,
 				       struct ipv4_ct_tuple *tuple, bool has_l4_header)
 {
 	struct lb4_reverse_nat *nat;
@@ -1365,7 +1365,7 @@ bool lb4_src_range_ok(const struct lb4_service *svc __maybe_unused,
 		.addr = saddr,
 	};
 
-	if (map_lookup_elem(&cilium_lb4_source_range, &key))
+	if (map_lookup_elem(&cilium_lb4_source_range_v2, &key))
 		verdict = true;
 
 	return verdict ^ !!(svc->flags2 & SVC_FLAG_SOURCE_RANGE_DENY);
@@ -1392,13 +1392,13 @@ struct lb4_service *lb4_lookup_service(struct lb4_key *key,
 
 	key->scope = LB_LOOKUP_SCOPE_EXT;
 	key->backend_slot = 0;
-	svc = map_lookup_elem(&cilium_lb4_services_v2, key);
+	svc = map_lookup_elem(&cilium_lb4_services_v3, key);
 
 #if defined(ENABLE_SERVICE_PROTOCOL_DIFFERENTIATION)
 	/* If there are no elements for a specific protocol, check for ANY entries. */
 	if (!svc && key->proto != 0) {
 		key->proto = 0;
-		svc = map_lookup_elem(&cilium_lb4_services_v2, key);
+		svc = map_lookup_elem(&cilium_lb4_services_v3, key);
 	}
 #endif
 
@@ -1406,7 +1406,7 @@ struct lb4_service *lb4_lookup_service(struct lb4_key *key,
 		if (!scope_switch || !lb4_svc_is_two_scopes(svc))
 			return svc;
 		key->scope = LB_LOOKUP_SCOPE_INT;
-		svc = map_lookup_elem(&cilium_lb4_services_v2, key);
+		svc = map_lookup_elem(&cilium_lb4_services_v3, key);
 	}
 
 	return svc;
@@ -1432,7 +1432,7 @@ lb4_lookup_backend(struct __ctx_buff *ctx __maybe_unused, __u32 backend_id)
 static __always_inline
 struct lb4_service *__lb4_lookup_backend_slot(struct lb4_key *key)
 {
-	return map_lookup_elem(&cilium_lb4_services_v2, key);
+	return map_lookup_elem(&cilium_lb4_services_v3, key);
 }
 
 static __always_inline
@@ -1601,7 +1601,7 @@ __lb4_affinity_backend_id(const struct lb4_service *svc, bool netns_cookie,
 	};
 	struct lb_affinity_val *val;
 
-	val = map_lookup_elem(&cilium_lb4_affinity, &key);
+	val = map_lookup_elem(&cilium_lb4_affinity_v2, &key);
 	if (val != NULL) {
 		__u32 now = (__u32)bpf_mono_now();
 		struct lb_affinity_match match = {
@@ -1616,12 +1616,12 @@ __lb4_affinity_backend_id(const struct lb4_service *svc, bool netns_cookie,
 		 */
 		if (READ_ONCE(val->last_used) +
 		    bpf_sec_to_mono(lb4_affinity_timeout(svc)) <= now) {
-			map_delete_elem(&cilium_lb4_affinity, &key);
+			map_delete_elem(&cilium_lb4_affinity_v2, &key);
 			return 0;
 		}
 
-		if (!map_lookup_elem(&cilium_lb_affinity_match, &match)) {
-			map_delete_elem(&cilium_lb4_affinity, &key);
+		if (!map_lookup_elem(&cilium_lb_affinity_match_v2, &match)) {
+			map_delete_elem(&cilium_lb4_affinity_v2, &key);
 			return 0;
 		}
 
@@ -1655,7 +1655,7 @@ __lb4_update_affinity(const struct lb4_service *svc, bool netns_cookie,
 		.last_used	= now,
 	};
 
-	map_update_elem(&cilium_lb4_affinity, &key, &val, 0);
+	map_update_elem(&cilium_lb4_affinity_v2, &key, &val, 0);
 }
 
 static __always_inline void
@@ -1927,7 +1927,7 @@ static __always_inline void lb4_ctx_store_state(struct __ctx_buff *ctx,
 					       __u16 proxy_port, __u32 cluster_id)
 {
 	ctx_store_meta(ctx, CB_PROXY_MAGIC, (__u32)proxy_port << 16);
-	ctx_store_meta(ctx, CB_CT_STATE, (__u32)state->rev_nat_index << 16 |
+	ctx_store_meta(ctx, CB_CT_STATE, (__u32)state->rev_nat_index << 6 |
 #ifndef DISABLE_LOOPBACK_LB
 		       state->loopback);
 #else
@@ -1952,7 +1952,7 @@ lb4_ctx_restore_state(struct __ctx_buff *ctx, struct ct_state *state,
 	if (meta & 1)
 		state->loopback = 1;
 #endif
-	state->rev_nat_index = meta >> 16;
+	state->rev_nat_index = meta >> 6;
 
 	*proxy_port = clear ? (ctx_load_and_clear_meta(ctx, CB_PROXY_MAGIC) >> 16) :
 			      (ctx_load_meta(ctx, CB_PROXY_MAGIC) >> 16);

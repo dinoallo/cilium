@@ -5,7 +5,7 @@
 
 #ifdef ENABLE_ACTIVE_CONNECTION_TRACKING
 struct lb_act_key {
-	__u16 svc_id;
+	__u32 svc_id;
 	__u8 zone;
 	__u8 pad;
 };
@@ -24,7 +24,7 @@ struct {
 	__uint(map_flags, LRU_MEM_FLAVOR);
 } cilium_lb_act __section_maps_btf;
 
-static __always_inline void _lb_act_conn_closed(__u16 svc_id, __u8 zone)
+static __always_inline void _lb_act_conn_closed(__u32 svc_id, __u8 zone)
 {
 	struct lb_act_key key = { .svc_id = svc_id, .zone = zone };
 	struct lb_act_value *lookup;
@@ -37,7 +37,7 @@ static __always_inline void _lb_act_conn_closed(__u16 svc_id, __u8 zone)
 	__sync_fetch_and_add(&lookup->closed, 1);
 }
 
-static __always_inline void _lb_act_conn_open(__u16 svc_id, __u8 zone)
+static __always_inline void _lb_act_conn_open(__u32 svc_id, __u8 zone)
 {
 	struct lb_act_key key = { .svc_id = svc_id, .zone = zone };
 	struct lb_act_value val;

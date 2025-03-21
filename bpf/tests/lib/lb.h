@@ -4,7 +4,7 @@
 #ifdef ENABLE_IPV4
 static __always_inline void
 lb_v4_upsert_service(__be32 addr, __be16 port, __u8 proto, __u16 backend_count,
-		     __u16 rev_nat_index)
+		     __u32 rev_nat_index)
 {
 	struct lb4_key svc_key = {
 		.address = addr,
@@ -17,15 +17,15 @@ lb_v4_upsert_service(__be32 addr, __be16 port, __u8 proto, __u16 backend_count,
 		.flags = SVC_FLAG_ROUTABLE,
 		.rev_nat_index = rev_nat_index,
 	};
-	map_update_elem(&cilium_lb4_services_v2, &svc_key, &svc_value, BPF_ANY);
+	map_update_elem(&cilium_lb4_services_v3, &svc_key, &svc_value, BPF_ANY);
 	/* Register with both scopes: */
 	svc_key.scope = LB_LOOKUP_SCOPE_INT;
-	map_update_elem(&cilium_lb4_services_v2, &svc_key, &svc_value, BPF_ANY);
+	map_update_elem(&cilium_lb4_services_v3, &svc_key, &svc_value, BPF_ANY);
 }
 
 static __always_inline void
 lb_v4_add_service(__be32 addr, __be16 port, __u8 proto, __u16 backend_count,
-		  __u16 rev_nat_index)
+		  __u32 rev_nat_index)
 {
 	/* Register with both scopes: */
 	lb_v4_upsert_service(addr, port, proto, backend_count, rev_nat_index);
@@ -35,12 +35,12 @@ lb_v4_add_service(__be32 addr, __be16 port, __u8 proto, __u16 backend_count,
 		.address = addr,
 		.port = port,
 	};
-	map_update_elem(&cilium_lb4_reverse_nat, &rev_nat_index, &revnat_value, BPF_ANY);
+	map_update_elem(&cilium_lb4_reverse_nat_v2, &rev_nat_index, &revnat_value, BPF_ANY);
 }
 
 static __always_inline void
 lb_v4_add_service_with_flags(__be32 addr, __be16 port, __u8 proto, __u16 backend_count,
-			     __u16 rev_nat_index, __u8 flags, __u8 flags2)
+			     __u32 rev_nat_index, __u8 flags, __u8 flags2)
 {
 	struct lb4_key svc_key = {
 		.address = addr,
@@ -54,10 +54,10 @@ lb_v4_add_service_with_flags(__be32 addr, __be16 port, __u8 proto, __u16 backend
 		.flags2 = flags2,
 		.rev_nat_index = rev_nat_index,
 	};
-	map_update_elem(&cilium_lb4_services_v2, &svc_key, &svc_value, BPF_ANY);
+	map_update_elem(&cilium_lb4_services_v3, &svc_key, &svc_value, BPF_ANY);
 	/* Register with both scopes: */
 	svc_key.scope = LB_LOOKUP_SCOPE_INT;
-	map_update_elem(&cilium_lb4_services_v2, &svc_key, &svc_value, BPF_ANY);
+	map_update_elem(&cilium_lb4_services_v3, &svc_key, &svc_value, BPF_ANY);
 }
 
 static __always_inline void
@@ -96,14 +96,14 @@ lb_v4_add_backend(__be32 svc_addr, __be16 svc_port, __u16 backend_slot,
 		.flags = SVC_FLAG_ROUTABLE,
 	};
 	/* Point the service's backend_slot at the created backend: */
-	map_update_elem(&cilium_lb4_services_v2, &svc_key, &svc_value, BPF_ANY);
+	map_update_elem(&cilium_lb4_services_v3, &svc_key, &svc_value, BPF_ANY);
 }
 #endif
 
 #ifdef ENABLE_IPV6
 static __always_inline void
 __lb_v6_add_service(const union v6addr *addr, __be16 port, __u8 proto,
-		    __u16 backend_count, __u16 rev_nat_index,
+		    __u16 backend_count, __u32 rev_nat_index,
 		    __u8 flags, __u8 flags2)
 {
 	struct lb6_key svc_key __align_stack_8 = {
@@ -119,9 +119,9 @@ __lb_v6_add_service(const union v6addr *addr, __be16 port, __u8 proto,
 	};
 
 	memcpy(&svc_key.address, addr, sizeof(*addr));
-	map_update_elem(&cilium_lb6_services_v2, &svc_key, &svc_value, BPF_ANY);
+	map_update_elem(&cilium_lb6_services_v3, &svc_key, &svc_value, BPF_ANY);
 	svc_key.scope = LB_LOOKUP_SCOPE_INT;
-	map_update_elem(&cilium_lb6_services_v2, &svc_key, &svc_value, BPF_ANY);
+	map_update_elem(&cilium_lb6_services_v3, &svc_key, &svc_value, BPF_ANY);
 
 	/* Insert a reverse NAT entry for the above service */
 	struct lb6_reverse_nat revnat_value __align_stack_8 = {
@@ -129,12 +129,12 @@ __lb_v6_add_service(const union v6addr *addr, __be16 port, __u8 proto,
 	};
 
 	memcpy(&revnat_value.address, addr, sizeof(*addr));
-	map_update_elem(&cilium_lb6_reverse_nat, &rev_nat_index, &revnat_value, BPF_ANY);
+	map_update_elem(&cilium_lb6_reverse_nat_v2, &rev_nat_index, &revnat_value, BPF_ANY);
 }
 
 static __always_inline void
 lb_v6_add_service(const union v6addr *addr, __be16 port, __u8 proto,
-		  __u16 backend_count, __u16 rev_nat_index)
+		  __u16 backend_count, __u32 rev_nat_index)
 {
 	__lb_v6_add_service(addr, port, proto, backend_count, rev_nat_index,
 			    SVC_FLAG_ROUTABLE, 0);
@@ -142,7 +142,7 @@ lb_v6_add_service(const union v6addr *addr, __be16 port, __u8 proto,
 
 static __always_inline void
 lb_v6_add_service_with_flags(const union v6addr *addr, __be16 port, __u8 proto,
-			     __u16 backend_count, __u16 rev_nat_index, __u8 flags,
+			     __u16 backend_count, __u32 rev_nat_index, __u8 flags,
 			     __u8 flags2)
 {
 	__lb_v6_add_service(addr, port, proto, backend_count, rev_nat_index, flags,
@@ -166,7 +166,7 @@ lb_v6_add_backend(const union v6addr *svc_addr, __be16 svc_port, __u16 backend_s
 	};
 
 	memcpy(&svc_key.address, svc_addr, sizeof(*svc_addr));
-	map_update_elem(&cilium_lb6_services_v2, &svc_key, &svc_value, BPF_ANY);
+	map_update_elem(&cilium_lb6_services_v3, &svc_key, &svc_value, BPF_ANY);
 
 	struct lb6_backend backend __align_stack_8 = {
 		.port = backend_port,

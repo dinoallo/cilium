@@ -141,7 +141,7 @@ int tc_nodeport_lb_terminating_backend_0_pktgen(struct __ctx_buff *ctx)
 SETUP("tc", "tc_nodeport_lb_terminating_backend_0")
 int tc_nodeport_lb_terminating_backend_0_setup(struct __ctx_buff *ctx)
 {
-	__u16 revnat_id = SVC_REV_NAT_ID;
+	__u32 revnat_id = SVC_REV_NAT_ID;
 
 	lb_v4_add_service(FRONTEND_IP_LOCAL, FRONTEND_PORT, IPPROTO_UDP, 1, revnat_id);
 	lb_v4_add_backend(FRONTEND_IP_LOCAL, FRONTEND_PORT, 1, 125,
@@ -251,7 +251,7 @@ int tc_nodeport_lb_terminating_backend_1_pktgen(struct __ctx_buff *ctx)
 SETUP("tc", "tc_nodeport_lb_terminating_backend_1")
 int tc_nodeport_lb_terminating_backend_1_setup(struct __ctx_buff *ctx)
 {
-	__u16 revnat_id = SVC_REV_NAT_ID;
+	__u32 revnat_id = SVC_REV_NAT_ID;
 
 	/* Remove the service's last backend, and flip the backend to
 	 * 'terminating' state.
