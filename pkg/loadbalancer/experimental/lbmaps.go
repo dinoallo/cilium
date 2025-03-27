@@ -210,7 +210,7 @@ var (
 	revNat4MapSpec = &ebpf.MapSpec{
 		Name:      lbmap.RevNat4MapV2Name,
 		Type:      ebpf.Hash,
-		KeySize:   sizeOf[lbmap.RevNat4Key](),
+		KeySize:   sizeOf[lbmap.RevNat4KeyV2](),
 		ValueSize: sizeOf[lbmap.RevNat4Value](),
 	}
 
@@ -346,7 +346,7 @@ func iterateMap(m *ebpf.Map, newPair func() (any, any), cb func(any, any)) error
 func (r *BPFLBMaps) DeleteRevNat(key lbmap.RevNatKey) error {
 	var err error
 	switch key.(type) {
-	case *lbmap.RevNat4Key:
+	case *lbmap.RevNat4KeyV2:
 		err = r.revNat4Map.Delete(key)
 	case *lbmap.RevNat6Key:
 		err = r.revNat6Map.Delete(key)
@@ -368,7 +368,7 @@ func (r *BPFLBMaps) DumpRevNat(cb func(lbmap.RevNatKey, lbmap.RevNatValue)) erro
 		)
 	}
 	return errors.Join(
-		iterateMap(r.revNat4Map, func() (any, any) { return &lbmap.RevNat4Key{}, &lbmap.RevNat4Value{} }, cbWrap),
+		iterateMap(r.revNat4Map, func() (any, any) { return &lbmap.RevNat4KeyV2{}, &lbmap.RevNat4Value{} }, cbWrap),
 		iterateMap(r.revNat6Map, func() (any, any) { return &lbmap.RevNat6Key{}, &lbmap.RevNat6Value{} }, cbWrap),
 	)
 }
@@ -376,7 +376,7 @@ func (r *BPFLBMaps) DumpRevNat(cb func(lbmap.RevNatKey, lbmap.RevNatValue)) erro
 // UpdateRevNat4 implements lbmaps.
 func (r *BPFLBMaps) UpdateRevNat(key lbmap.RevNatKey, value lbmap.RevNatValue) error {
 	switch key.(type) {
-	case *lbmap.RevNat4Key:
+	case *lbmap.RevNat4KeyV2:
 		return r.revNat4Map.Update(key, value, 0)
 	case *lbmap.RevNat6Key:
 		return r.revNat6Map.Update(key, value, 0)

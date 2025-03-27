@@ -116,7 +116,7 @@ func initSVC(params InitParams) {
 			WithEvents(option.Config.GetEventBufferConfig(RevNat4MapName))
 		RevNat4MapV2 = bpf.NewMap(RevNat4MapV2Name,
 			ebpf.Hash,
-			&RevNat4Key{},
+			&RevNat4KeyV2{},
 			&RevNat4Value{},
 			RevNatMapMaxEntries,
 			0,
@@ -170,6 +170,7 @@ func initSVC(params InitParams) {
 
 // The compile-time check for whether the structs implement the interfaces
 var _ RevNatKey = (*RevNat4Key)(nil)
+var _ RevNatKey = (*RevNat4KeyV2)(nil)
 var _ RevNatValue = (*RevNat4Value)(nil)
 var _ ServiceKey = (*Service4Key)(nil)
 var _ ServiceValue = (*Service4Value)(nil)
@@ -224,6 +225,33 @@ func (v *RevNat4Value) ToNetwork() RevNatValue {
 func (k *RevNat4Value) ToHost() RevNatValue {
 	h := *k
 	h.Port = byteorder.NetworkToHost16(h.Port)
+	return &h
+}
+
+type RevNat4KeyV2 struct {
+	Key uint16
+}
+
+func NewRevNat4KeyV2(value uint16) *RevNat4KeyV2 {
+	return &RevNat4KeyV2{value}
+}
+
+func (k *RevNat4KeyV2) Map() *bpf.Map   { return RevNat4MapV2 }
+func (k *RevNat4KeyV2) String() string  { return fmt.Sprintf("%d", k.ToHost().(*RevNat4KeyV2).Key) }
+func (k *RevNat4KeyV2) New() bpf.MapKey { return &RevNat4KeyV2{} }
+func (k *RevNat4KeyV2) GetKey() uint16  { return k.Key }
+
+// ToNetwork converts RevNat4KeyV2 to network byte order.
+func (k *RevNat4KeyV2) ToNetwork() RevNatKey {
+	n := *k
+	n.Key = byteorder.HostToNetwork16(n.Key)
+	return &n
+}
+
+// ToHost converts RevNat4KeyV2 to host byte order.
+func (k *RevNat4KeyV2) ToHost() RevNatKey {
+	h := *k
+	h.Key = byteorder.NetworkToHost16(h.Key)
 	return &h
 }
 
@@ -327,7 +355,7 @@ func (s *Service4Value) SetQCount(count int)  { s.QCount = uint16(count) }
 func (s *Service4Value) GetQCount() int       { return int(s.QCount) }
 func (s *Service4Value) SetRevNat(id int)     { s.RevNat = uint16(id) }
 func (s *Service4Value) GetRevNat() int       { return int(s.RevNat) }
-func (s *Service4Value) RevNatKey() RevNatKey { return &RevNat4Key{s.RevNat} }
+func (s *Service4Value) RevNatKey() RevNatKey { return &RevNat4KeyV2{s.RevNat} }
 func (s *Service4Value) SetFlags(flags uint16) {
 	s.Flags = uint8(flags & 0xff)
 	s.Flags2 = uint8(flags >> 8)

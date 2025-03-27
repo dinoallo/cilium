@@ -657,7 +657,7 @@ func (s *Service) populateReverseNatMapV2FromV1(ipv4 bool) error {
 		copyRevnatEntries := func(key bpf.MapKey, value bpf.MapValue) {
 			if v == v4 {
 				origKey := key.(*lbmap.RevNat4Key)
-				newKey = origKey
+				newKey = lbmap.NewRevNat4KeyV2(origKey.GetKey())
 			} else {
 				return
 			}
