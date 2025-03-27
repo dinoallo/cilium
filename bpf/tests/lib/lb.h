@@ -122,7 +122,7 @@ __lb_v6_add_service(const union v6addr *addr, __be16 port, __u16 backend_count, 
 	};
 
 	memcpy(&revnat_value.address, addr, sizeof(*addr));
-	map_update_elem(&LB6_REVERSE_NAT_MAP, &rev_nat_index, &revnat_value, BPF_ANY);
+	map_update_elem(&LB6_REVERSE_NAT_MAP_V2, &rev_nat_index, &revnat_value, BPF_ANY);
 }
 
 static __always_inline void

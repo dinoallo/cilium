@@ -131,6 +131,7 @@ func (ms *MapSweeper) RemoveDisabledMaps() {
 			"cilium_ct6_global",
 			"cilium_ct_any6_global",
 			"cilium_lb6_reverse_nat",
+			"cilium_lb6_reverse_nat_v2",
 			"cilium_lb6_rr_seq",
 			"cilium_lb6_services",
 			"cilium_lb6_services_v2",

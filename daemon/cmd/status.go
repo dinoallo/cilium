@@ -436,7 +436,7 @@ func (d *Daemon) getBPFMapStatus() *models.BPFMapStatus {
 				Size: int64(lbmap.RevNatMapMaxEntries),
 			},
 			{
-				Name: "IPv6 service reverse NAT", // cilium_lb6_reverse_nat
+				Name: "IPv6 service reverse NAT", // cilium_lb6_reverse_nat_v2
 				Size: int64(lbmap.RevNatMapMaxEntries),
 			},
 			{

@@ -39,6 +39,8 @@ const (
 	Backend6MapV3Name = "cilium_lb6_backends_v3"
 	// RevNat6MapName is the name of the IPv6 LB reverse NAT BPF map.
 	RevNat6MapName = "cilium_lb6_reverse_nat"
+	// RevNat6MapName is the name of the IPv6 LB reverse NAT v2 BPF map.
+	RevNat6MapV2Name = "cilium_lb6_reverse_nat_v2"
 )
 
 var (
@@ -58,6 +60,8 @@ var (
 	Backend6MapV3 *bpf.Map
 	// RevNat6Map is the IPv6 LB reverse NAT BPF map.
 	RevNat6Map *bpf.Map
+	// RevNat6MapV2  is the IPv6 LB reverse NAT v2 BPF map.
+	RevNat6MapV2 *bpf.Map
 	// SockRevNat6Map is the IPv6 LB sock reverse NAT BPF map.
 	SockRevNat6Map *bpf.Map
 )

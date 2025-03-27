@@ -167,7 +167,7 @@ DEFINE_IPV6(HOST_IP, 0xbe, 0xef, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0xa, 0x
 #define RATELIMIT_METRICS_MAP test_cilium_ratelimit_metrics
 #define TUNNEL_MAP test_cilium_tunnel_map
 #define VTEP_MAP test_cilium_vtep_map
-#define LB6_REVERSE_NAT_MAP test_cilium_lb6_reverse_nat
+#define LB6_REVERSE_NAT_MAP_V2 test_cilium_lb6_reverse_nat_v2
 #define LB6_SERVICES_MAP_V2 test_cilium_lb6_services
 #define LB6_BACKEND_MAP test_cilium_lb6_backends
 #define LB6_REVERSE_NAT_SK_MAP test_cilium_lb6_reverse_sk

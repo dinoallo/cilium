@@ -630,12 +630,13 @@ func (s *Service) populateBackendMapV3FromV2(ipv4, ipv6 bool) error {
 	return nil
 }
 
-func (s *Service) populateReverseNatMapV2FromV1(ipv4 bool) error {
+func (s *Service) populateReverseNatMapV2FromV1(ipv4, ipv6 bool) error {
 	const (
 		v4 = "ipv4"
+		v6 = "ipv6"
 	)
 
-	enabled := map[string]bool{v4: ipv4}
+	enabled := map[string]bool{v4: ipv4, v6: ipv6}
 
 	for v, e := range enabled {
 		if !e {
@@ -652,6 +653,9 @@ func (s *Service) populateReverseNatMapV2FromV1(ipv4 bool) error {
 		if v == v4 {
 			v2Map = lbmap.RevNat4MapV2
 			v1Map = lbmap.RevNat4Map
+		} else {
+			v2Map = lbmap.RevNat6MapV2
+			v1Map = lbmap.RevNat6Map
 		}
 
 		copyRevnatEntries := func(key bpf.MapKey, value bpf.MapValue) {
@@ -659,7 +663,8 @@ func (s *Service) populateReverseNatMapV2FromV1(ipv4 bool) error {
 				origKey := key.(*lbmap.RevNat4Key)
 				newKey = lbmap.NewRevNat4KeyV2(origKey.GetKey())
 			} else {
-				return
+				origKey := key.(*lbmap.RevNat6Key)
+				newKey = origKey
 			}
 
 			err := v2Map.Update(newKey, value)
@@ -701,14 +706,15 @@ func (s *Service) InitMaps(ipv6, ipv4, sockMaps, restore bool) error {
 		v2BackendMapExistsV4 bool
 		v2BackendMapExistsV6 bool
 		v1RevNatMapExistsV4  bool
+		v1RevNatMapExistsV6  bool
 	)
 
 	toOpen := []*bpf.Map{}
 	toDelete := []*bpf.Map{}
 	if ipv6 {
-		toOpen = append(toOpen, lbmap.Service6MapV2, lbmap.Backend6MapV3, lbmap.RevNat6Map)
+		toOpen = append(toOpen, lbmap.Service6MapV2, lbmap.Backend6MapV3, lbmap.RevNat6MapV2)
 		if !restore {
-			toDelete = append(toDelete, lbmap.Service6MapV2, lbmap.Backend6MapV3, lbmap.RevNat6Map)
+			toDelete = append(toDelete, lbmap.Service6MapV2, lbmap.Backend6MapV3, lbmap.RevNat6MapV2)
 		}
 		if sockMaps {
 			if err := lbmap.CreateSockRevNat6Map(); err != nil {
@@ -716,6 +722,7 @@ func (s *Service) InitMaps(ipv6, ipv4, sockMaps, restore bool) error {
 			}
 		}
 		v2BackendMapExistsV6 = lbmap.Backend6MapV2.Open() == nil
+		v1RevNatMapExistsV6 = lbmap.RevNat6Map.Open() == nil
 	}
 	if ipv4 {
 		toOpen = append(toOpen, lbmap.Service4MapV2, lbmap.Backend4MapV3, lbmap.RevNat4MapV2)
@@ -748,9 +755,9 @@ func (s *Service) InitMaps(ipv6, ipv4, sockMaps, restore bool) error {
 			log.WithError(err).Warn("Error populating V3 map from V2 map, might interrupt existing connections during upgrade")
 		}
 	}
-	if v1RevNatMapExistsV4 {
+	if v1RevNatMapExistsV4 || v1RevNatMapExistsV6 {
 		log.Info("RevNat map v1 exists. Migrating entries to revnat map v2.")
-		if err := s.populateReverseNatMapV2FromV1(v1RevNatMapExistsV4); err != nil {
+		if err := s.populateReverseNatMapV2FromV1(v1RevNatMapExistsV4, v1RevNatMapExistsV6); err != nil {
 			log.WithError(err).Warn("Error populating V2 map from V1 map, might interrupt existing connections during upgrade")
 		}
 	}

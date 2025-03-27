@@ -165,6 +165,14 @@ func initSVC(params InitParams) {
 			0,
 		).WithCache().WithPressureMetric().
 			WithEvents(option.Config.GetEventBufferConfig(RevNat6MapName))
+		RevNat6MapV2 = bpf.NewMap(RevNat6MapV2Name,
+			ebpf.Hash,
+			&RevNat6Key{},
+			&RevNat6Value{},
+			RevNatMapMaxEntries,
+			0,
+		).WithCache().WithPressureMetric().
+			WithEvents(option.Config.GetEventBufferConfig(RevNat6MapV2Name))
 	}
 }
 

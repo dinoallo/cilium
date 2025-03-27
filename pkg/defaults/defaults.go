@@ -621,6 +621,7 @@ var (
 		"cilium_lb6_services_v2":    "enabled,128,0",
 		"cilium_lb6_backends_v2":    "enabled,128,0",
 		"cilium_lb6_reverse_nat":    "enabled,128,0",
+		"cilium_lb6_reverse_nat_v2": "enabled,128,0",
 		"cilium_lb6_backends_v3":    "enabled,128,0",
 		"cilium_lb6_source_range":   "enabled,128,0",
 		"cilium_lb6_affinity_match": "enabled,128,0",

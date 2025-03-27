@@ -519,7 +519,7 @@ func (*LBBPFMap) DumpServiceMaps() ([]*loadbalancer.SVC, []error) {
 		if err != nil {
 			errors = append(errors, err)
 		}
-		err = RevNat6Map.DumpWithCallback(parseRevNatEntries)
+		err = RevNat6MapV2.DumpWithCallback(parseRevNatEntries)
 		if err != nil {
 			errors = append(errors, err)
 		}
