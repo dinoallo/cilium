@@ -39,7 +39,7 @@ func dumpSrcRanges(serviceList map[string][]string) {
 }
 
 func dumpRevNat(serviceList map[string][]string) {
-	if err := lbmap.RevNat4Map.DumpIfExists(serviceList); err != nil {
+	if err := lbmap.RevNat4MapV2.DumpIfExists(serviceList); err != nil {
 		Fatalf("Unable to dump IPv4 reverse NAT table: %s", err)
 	}
 	if err := lbmap.RevNat6Map.DumpIfExists(serviceList); err != nil {

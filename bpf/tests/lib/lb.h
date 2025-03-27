@@ -32,7 +32,7 @@ lb_v4_add_service(__be32 addr, __be16 port, __u16 backend_count, __u16 rev_nat_i
 		.address = addr,
 		.port = port,
 	};
-	map_update_elem(&LB4_REVERSE_NAT_MAP, &rev_nat_index, &revnat_value, BPF_ANY);
+	map_update_elem(&LB4_REVERSE_NAT_MAP_V2, &rev_nat_index, &revnat_value, BPF_ANY);
 }
 
 static __always_inline void

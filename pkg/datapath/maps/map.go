@@ -154,7 +154,7 @@ func (ms *MapSweeper) RemoveDisabledMaps() {
 		maps = append(maps, []string{
 			"cilium_ct4_global",
 			"cilium_ct_any4_global",
-			"cilium_lb4_reverse_nat",
+			"cilium_lb4_reverse_nat_v2",
 			"cilium_lb4_rr_seq",
 			"cilium_lb4_services",
 			"cilium_lb4_services_v2",

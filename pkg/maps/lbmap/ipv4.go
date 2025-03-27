@@ -38,6 +38,8 @@ const (
 	Backend4MapV3Name = "cilium_lb4_backends_v3"
 	// RevNat4MapName is the name of the IPv4 LB reverse NAT BPF map.
 	RevNat4MapName = "cilium_lb4_reverse_nat"
+	// RevNat4MapName is the name of the IPv4 LB reverse NAT v2 BPF map.
+	RevNat4MapV2Name = "cilium_lb4_reverse_nat_v2"
 )
 
 var (
@@ -57,6 +59,8 @@ var (
 	Backend4MapV3 *bpf.Map
 	// RevNat4Map is the IPv4 LB reverse NAT BPF map.
 	RevNat4Map *bpf.Map
+	// RevNat4MapV2 is the IPv4 LB reverse NAT v2 BPF map.
+	RevNat4MapV2 *bpf.Map
 	// SockRevNat4Map is the IPv4 LB sock reverse NAT BPF map.
 	SockRevNat4Map *bpf.Map
 )
@@ -110,6 +114,14 @@ func initSVC(params InitParams) {
 			0,
 		).WithCache().WithPressureMetric().
 			WithEvents(option.Config.GetEventBufferConfig(RevNat4MapName))
+		RevNat4MapV2 = bpf.NewMap(RevNat4MapV2Name,
+			ebpf.Hash,
+			&RevNat4Key{},
+			&RevNat4Value{},
+			RevNatMapMaxEntries,
+			0,
+		).WithCache().WithPressureMetric().
+			WithEvents(option.Config.GetEventBufferConfig(RevNat4MapV2Name))
 	}
 
 	if params.IPv6 {
