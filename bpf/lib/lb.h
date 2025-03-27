@@ -115,7 +115,7 @@ struct {
 
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
-	__type(key, __u16);
+	__type(key, __u32);
 	__type(value, struct lb4_reverse_nat);
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_REV_NAT_MAP_MAX_ENTRIES);
@@ -1219,8 +1219,9 @@ static __always_inline struct lb4_reverse_nat *
 lb4_lookup_rev_nat_entry(struct __ctx_buff *ctx __maybe_unused, __u16 index)
 {
 	cilium_dbg_lb(ctx, DBG_LB4_REVERSE_NAT_LOOKUP, index, 0);
+	__u32 rev_nat_id = index;
 
-	return map_lookup_elem(&LB4_REVERSE_NAT_MAP_V2, &index);
+	return map_lookup_elem(&LB4_REVERSE_NAT_MAP_V2, &rev_nat_id);
 }
 
 /** Perform IPv4 reverse NAT based on reverse NAT index

@@ -237,10 +237,10 @@ func (k *RevNat4Value) ToHost() RevNatValue {
 }
 
 type RevNat4KeyV2 struct {
-	Key uint16
+	Key uint32
 }
 
-func NewRevNat4KeyV2(value uint16) *RevNat4KeyV2 {
+func NewRevNat4KeyV2(value uint32) *RevNat4KeyV2 {
 	return &RevNat4KeyV2{value}
 }
 
@@ -252,14 +252,14 @@ func (k *RevNat4KeyV2) GetKey() uint32  { return uint32(k.Key) }
 // ToNetwork converts RevNat4KeyV2 to network byte order.
 func (k *RevNat4KeyV2) ToNetwork() RevNatKey {
 	n := *k
-	n.Key = byteorder.HostToNetwork16(n.Key)
+	n.Key = byteorder.HostToNetwork32(n.Key)
 	return &n
 }
 
 // ToHost converts RevNat4KeyV2 to host byte order.
 func (k *RevNat4KeyV2) ToHost() RevNatKey {
 	h := *k
-	h.Key = byteorder.NetworkToHost16(h.Key)
+	h.Key = byteorder.NetworkToHost32(h.Key)
 	return &h
 }
 
@@ -363,7 +363,7 @@ func (s *Service4Value) SetQCount(count int)  { s.QCount = uint16(count) }
 func (s *Service4Value) GetQCount() int       { return int(s.QCount) }
 func (s *Service4Value) SetRevNat(id int)     { s.RevNat = uint16(id) }
 func (s *Service4Value) GetRevNat() int       { return int(s.RevNat) }
-func (s *Service4Value) RevNatKey() RevNatKey { return &RevNat4KeyV2{s.RevNat} }
+func (s *Service4Value) RevNatKey() RevNatKey { return &RevNat4KeyV2{uint32(s.RevNat)} }
 func (s *Service4Value) SetFlags(flags uint16) {
 	s.Flags = uint8(flags & 0xff)
 	s.Flags2 = uint8(flags >> 8)
