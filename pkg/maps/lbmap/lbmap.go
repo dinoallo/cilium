@@ -452,7 +452,7 @@ func (*LBBPFMap) DumpServiceMaps() ([]*loadbalancer.SVC, []error) {
 	parseRevNatEntries := func(key bpf.MapKey, value bpf.MapValue) {
 		revNatKey := key.(RevNatKey).ToHost()
 		revNatValue := value.(RevNatValue).ToHost()
-		revNatValueMap[revNatKey.GetKey()] = revNatValue
+		revNatValueMap[uint16(revNatKey.GetKey())] = revNatValue
 	}
 
 	parseSVCEntries := func(key bpf.MapKey, value bpf.MapValue) {
@@ -461,7 +461,7 @@ func (*LBBPFMap) DumpServiceMaps() ([]*loadbalancer.SVC, []error) {
 
 		serviceID := svcValue.RevNatKey().GetKey()
 		revNatValue := svcKey.RevNatValue().String()
-		val, found := revNatValueMap[serviceID]
+		val, found := revNatValueMap[uint16(serviceID)]
 		if !found {
 			errors = append(errors, fmt.Errorf("revNat %d not found", serviceID))
 			inconsistentServiceKeys = append(inconsistentServiceKeys, svcKey)

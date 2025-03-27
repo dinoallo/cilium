@@ -201,7 +201,7 @@ func NewRevNat4Key(value uint16) *RevNat4Key {
 func (k *RevNat4Key) Map() *bpf.Map   { return RevNat4Map }
 func (k *RevNat4Key) String() string  { return fmt.Sprintf("%d", k.ToHost().(*RevNat4Key).Key) }
 func (k *RevNat4Key) New() bpf.MapKey { return &RevNat4Key{} }
-func (k *RevNat4Key) GetKey() uint16  { return k.Key }
+func (k *RevNat4Key) GetKey() uint32  { return uint32(k.Key) }
 
 // ToNetwork converts RevNat4Key to network byte order.
 func (k *RevNat4Key) ToNetwork() RevNatKey {
@@ -247,7 +247,7 @@ func NewRevNat4KeyV2(value uint16) *RevNat4KeyV2 {
 func (k *RevNat4KeyV2) Map() *bpf.Map   { return RevNat4MapV2 }
 func (k *RevNat4KeyV2) String() string  { return fmt.Sprintf("%d", k.ToHost().(*RevNat4KeyV2).Key) }
 func (k *RevNat4KeyV2) New() bpf.MapKey { return &RevNat4KeyV2{} }
-func (k *RevNat4KeyV2) GetKey() uint16  { return k.Key }
+func (k *RevNat4KeyV2) GetKey() uint32  { return uint32(k.Key) }
 
 // ToNetwork converts RevNat4KeyV2 to network byte order.
 func (k *RevNat4KeyV2) ToNetwork() RevNatKey {
