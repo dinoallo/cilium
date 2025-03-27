@@ -48,7 +48,7 @@ func dumpRevNat(serviceList map[string][]string) {
 }
 
 func dumpFrontends(serviceList map[string][]string) {
-	if err := lbmap.Service4MapV2.DumpIfExists(serviceList); err != nil {
+	if err := lbmap.Service4MapV3.DumpIfExists(serviceList); err != nil {
 		Fatalf("Unable to dump IPv4 frontend table: %s", err)
 	}
 	if err := lbmap.Service6MapV2.DumpIfExists(serviceList); err != nil {
@@ -117,7 +117,7 @@ func dumpSVC(serviceList map[string][]string) {
 		serviceList[svc] = append(serviceList[svc], entry)
 	}
 
-	if err := lbmap.Service4MapV2.DumpWithCallbackIfExists(parseSVCEntry); err != nil {
+	if err := lbmap.Service4MapV3.DumpWithCallbackIfExists(parseSVCEntry); err != nil {
 		Fatalf("Unable to dump IPv4 services table: %s", err)
 	}
 	if err := lbmap.Service6MapV2.DumpWithCallbackIfExists(parseSVCEntry); err != nil {

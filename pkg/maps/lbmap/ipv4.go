@@ -30,6 +30,8 @@ const (
 
 	// Service4MapV2Name is the name of the IPv4 LB Services v2 BPF map.
 	Service4MapV2Name = "cilium_lb4_services_v2"
+	// Service4MapV3Name is the name of the IPv4 LB Services v3 BPF map.
+	Service4MapV3Name = "cilium_lb4_services_v3"
 	// Backend4MapName is the name of the IPv4 LB backends BPF map.
 	Backend4MapName = "cilium_lb4_backends"
 	// Backend4MapV2Name is the name of the IPv4 LB backends v2 BPF map.
@@ -51,6 +53,8 @@ var (
 
 	// Service4MapV2 is the IPv4 LB Services v2 BPF map.
 	Service4MapV2 *bpf.Map
+	// Service4MapV3 is the IPv4 LB Services v3 BPF map.
+	Service4MapV3 *bpf.Map
 	// Backend4Map is the IPv4 LB backends BPF map.
 	Backend4Map *bpf.Map
 	// Backend4MapV2 is the IPv4 LB backends v2 BPF map.
@@ -82,6 +86,14 @@ func initSVC(params InitParams) {
 			0,
 		).WithCache().WithPressureMetric().
 			WithEvents(option.Config.GetEventBufferConfig(Service4MapV2Name))
+		Service4MapV3 = bpf.NewMap(Service4MapV3Name,
+			ebpf.Hash,
+			&Service4Key{},
+			&Service4Value{},
+			ServiceMapMaxEntries,
+			0,
+		).WithCache().WithPressureMetric().
+			WithEvents(option.Config.GetEventBufferConfig(Service4MapV3Name))
 		Backend4Map = bpf.NewMap(Backend4MapName,
 			ebpf.Hash,
 			&Backend4Key{},
@@ -310,7 +322,7 @@ func (k *Service4Key) New() bpf.MapKey { return &Service4Key{} }
 
 func (k *Service4Key) IsIPv6() bool            { return false }
 func (k *Service4Key) IsSurrogate() bool       { return k.GetAddress().IsUnspecified() }
-func (k *Service4Key) Map() *bpf.Map           { return Service4MapV2 }
+func (k *Service4Key) Map() *bpf.Map           { return Service4MapV3 }
 func (k *Service4Key) SetBackendSlot(slot int) { k.BackendSlot = uint16(slot) }
 func (k *Service4Key) GetBackendSlot() int     { return int(k.BackendSlot) }
 func (k *Service4Key) SetScope(scope uint8)    { k.Scope = scope }

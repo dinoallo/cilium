@@ -129,7 +129,7 @@ struct {
 	__uint(pinning, LIBBPF_PIN_BY_NAME);
 	__uint(max_entries, CILIUM_LB_SERVICE_MAP_MAX_ENTRIES);
 	__uint(map_flags, CONDITIONAL_PREALLOC);
-} LB4_SERVICES_MAP_V2 __section_maps_btf;
+} LB4_SERVICES_MAP_V3 __section_maps_btf;
 
 struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
@@ -1351,13 +1351,13 @@ struct lb4_service *lb4_lookup_service(struct lb4_key *key,
 
 	key->scope = LB_LOOKUP_SCOPE_EXT;
 	key->backend_slot = 0;
-	svc = map_lookup_elem(&LB4_SERVICES_MAP_V2, key);
+	svc = map_lookup_elem(&LB4_SERVICES_MAP_V3, key);
 
 #if defined(ENABLE_SERVICE_PROTOCOL_DIFFERENTIATION)
 	/* If there are no elements for a specific protocol, check for ANY entries. */
 	if (!svc && key->proto != 0) {
 		key->proto = 0;
-		svc = map_lookup_elem(&LB4_SERVICES_MAP_V2, key);
+		svc = map_lookup_elem(&LB4_SERVICES_MAP_V3, key);
 	}
 #endif
 
@@ -1365,7 +1365,7 @@ struct lb4_service *lb4_lookup_service(struct lb4_key *key,
 		if (!scope_switch || !lb4_svc_is_two_scopes(svc))
 			return svc;
 		key->scope = LB_LOOKUP_SCOPE_INT;
-		svc = map_lookup_elem(&LB4_SERVICES_MAP_V2, key);
+		svc = map_lookup_elem(&LB4_SERVICES_MAP_V3, key);
 	}
 
 	return svc;
@@ -1391,7 +1391,7 @@ lb4_lookup_backend(struct __ctx_buff *ctx __maybe_unused, __u32 backend_id)
 static __always_inline
 struct lb4_service *__lb4_lookup_backend_slot(struct lb4_key *key)
 {
-	return map_lookup_elem(&LB4_SERVICES_MAP_V2, key);
+	return map_lookup_elem(&LB4_SERVICES_MAP_V3, key);
 }
 
 static __always_inline

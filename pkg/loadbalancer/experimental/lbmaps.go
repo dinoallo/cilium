@@ -180,7 +180,7 @@ func sizeOf[T any]() uint32 {
 // BPF map specs
 var (
 	service4MapSpec = &ebpf.MapSpec{
-		Name:      lbmap.Service4MapV2Name,
+		Name:      lbmap.Service4MapV3Name,
 		Type:      ebpf.Hash,
 		KeySize:   sizeOf[lbmap.Service4Key](),
 		ValueSize: sizeOf[lbmap.Service4Value](),

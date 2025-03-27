@@ -173,7 +173,7 @@ DEFINE_IPV6(HOST_IP, 0xbe, 0xef, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0xa, 0x
 #define LB6_REVERSE_NAT_SK_MAP test_cilium_lb6_reverse_sk
 #define LB6_REVERSE_NAT_SK_MAP_SIZE 262144
 #define LB4_REVERSE_NAT_MAP_V2 test_cilium_lb4_reverse_nat_v2
-#define LB4_SERVICES_MAP_V2 test_cilium_lb4_services
+#define LB4_SERVICES_MAP_V3 test_cilium_lb4_services_v3
 #define LB4_BACKEND_MAP test_cilium_lb4_backends
 #define LB_ACT_MAP test_cilium_lb_act
 #define LB4_REVERSE_NAT_SK_MAP test_cilium_lb4_reverse_sk

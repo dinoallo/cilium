@@ -416,7 +416,7 @@ func (d *Daemon) getBPFMapStatus() *models.BPFMapStatus {
 				Size: int64(option.Config.FragmentsMapEntries),
 			},
 			{
-				Name: "IPv4 service", // cilium_lb4_services_v2
+				Name: "IPv4 service", // cilium_lb4_services_v3
 				Size: int64(lbmap.ServiceMapMaxEntries),
 			},
 			{

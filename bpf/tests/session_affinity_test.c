@@ -149,7 +149,7 @@ int test1_setup(struct __ctx_buff *ctx)
 
 	/* Insert the service and backend map values */
 	for (unsigned long i = 0; i < ARRAY_SIZE(services); i++) {
-		map_update_elem(&LB4_SERVICES_MAP_V2, &services[i].key,
+		map_update_elem(&LB4_SERVICES_MAP_V3, &services[i].key,
 				&services[i].value, BPF_ANY);
 	}
 

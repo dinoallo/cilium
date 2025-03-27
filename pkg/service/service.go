@@ -695,6 +695,67 @@ func (s *Service) populateReverseNatMapV2FromV1(ipv4, ipv6 bool) error {
 	return nil
 }
 
+func (s *Service) populateServiceMapV3FromV2(ipv4 bool) error {
+	const (
+		v4 = "ipv4"
+	)
+
+	enabled := map[string]bool{v4: ipv4}
+
+	for v, e := range enabled {
+		if !e {
+			continue
+		}
+
+		var (
+			err    error
+			v2Map  *bpf.Map
+			v3Map  *bpf.Map
+			newVal lbmap.ServiceValue
+		)
+
+		if v == v4 {
+			v3Map = lbmap.Service4MapV3
+			v2Map = lbmap.Service4MapV2
+		} else {
+			continue
+		}
+
+		copyServiceEntries := func(key bpf.MapKey, value bpf.MapValue) {
+			if v == v4 {
+				origVal := value.(*lbmap.Service4Value)
+				newVal = origVal
+			} else {
+				return
+			}
+			err := v3Map.Update(key, newVal)
+			if err != nil {
+				log.WithError(err).WithField(logfields.BPFMapName, v3Map.Name()).Warn("Error updating map")
+			}
+		}
+
+		err = v2Map.DumpWithCallback(copyServiceEntries)
+		if err != nil {
+			return fmt.Errorf("unable to populate %s: %w", v2Map.Name(), err)
+		}
+
+		// V1 reverse nat map will be removed from bpffs at this point,
+		// the map will be actually removed once the last program
+		// referencing it has been removed.
+		err = v2Map.Close()
+		if err != nil {
+			log.WithError(err).WithField(logfields.BPFMapName, v2Map.Name()).Warn("Error closing map")
+		}
+
+		err = v2Map.Unpin()
+		if err != nil {
+			log.WithError(err).WithField(logfields.BPFMapName, v2Map.Name()).Warn("Error unpinning map")
+		}
+
+	}
+	return nil
+}
+
 // InitMaps opens or creates BPF maps used by services.
 //
 // If restore is set to false, entries of the maps are removed.
@@ -705,6 +766,7 @@ func (s *Service) InitMaps(ipv6, ipv4, sockMaps, restore bool) error {
 	var (
 		v2BackendMapExistsV4 bool
 		v2BackendMapExistsV6 bool
+		v2ServiceMapExistsV4 bool
 		v1RevNatMapExistsV4  bool
 		v1RevNatMapExistsV6  bool
 	)
@@ -725,15 +787,16 @@ func (s *Service) InitMaps(ipv6, ipv4, sockMaps, restore bool) error {
 		v1RevNatMapExistsV6 = lbmap.RevNat6Map.Open() == nil
 	}
 	if ipv4 {
-		toOpen = append(toOpen, lbmap.Service4MapV2, lbmap.Backend4MapV3, lbmap.RevNat4MapV2)
+		toOpen = append(toOpen, lbmap.Service4MapV3, lbmap.Backend4MapV3, lbmap.RevNat4MapV2)
 		if !restore {
-			toDelete = append(toDelete, lbmap.Service4MapV2, lbmap.Backend4MapV3, lbmap.RevNat4MapV2)
+			toDelete = append(toDelete, lbmap.Service4MapV3, lbmap.Backend4MapV3, lbmap.RevNat4MapV2)
 		}
 		if sockMaps {
 			if err := lbmap.CreateSockRevNat4Map(); err != nil {
 				return err
 			}
 		}
+		v2ServiceMapExistsV4 = lbmap.Service4MapV2.Open() == nil
 		v2BackendMapExistsV4 = lbmap.Backend4MapV2.Open() == nil
 		v1RevNatMapExistsV4 = lbmap.RevNat4Map.Open() == nil
 	}
@@ -752,6 +815,12 @@ func (s *Service) InitMaps(ipv6, ipv4, sockMaps, restore bool) error {
 	if v2BackendMapExistsV4 || v2BackendMapExistsV6 {
 		log.Info("Backend map v2 exists. Migrating entries to backend map v3.")
 		if err := s.populateBackendMapV3FromV2(v2BackendMapExistsV4, v2BackendMapExistsV6); err != nil {
+			log.WithError(err).Warn("Error populating V3 map from V2 map, might interrupt existing connections during upgrade")
+		}
+	}
+	if v2ServiceMapExistsV4 {
+		log.Info("Service map v2 exists. Migrating entries to service map v3.")
+		if err := s.populateServiceMapV3FromV2(v2ServiceMapExistsV4); err != nil {
 			log.WithError(err).Warn("Error populating V3 map from V2 map, might interrupt existing connections during upgrade")
 		}
 	}

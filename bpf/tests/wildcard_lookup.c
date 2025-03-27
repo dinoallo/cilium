@@ -97,7 +97,7 @@ static inline void __setup_v4(void)
 	ipcache_v4_add_entry(bpf_htonl(HOST_IP), 0, HOST_ID, 0, 0);
 
 	for (i = 0; i < ARRAY_SIZE(services); i++)
-		map_update_elem(&LB4_SERVICES_MAP_V2, &services[i].key, &services[i].value,
+		map_update_elem(&LB4_SERVICES_MAP_V3, &services[i].key, &services[i].value,
 				BPF_ANY);
 }
 
