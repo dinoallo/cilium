@@ -167,7 +167,7 @@ func initSVC(params InitParams) {
 			WithEvents(option.Config.GetEventBufferConfig(RevNat6MapName))
 		RevNat6MapV2 = bpf.NewMap(RevNat6MapV2Name,
 			ebpf.Hash,
-			&RevNat6Key{},
+			&RevNat6KeyV2{},
 			&RevNat6Value{},
 			RevNatMapMaxEntries,
 			0,

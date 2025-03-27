@@ -68,6 +68,7 @@ var (
 
 // The compile-time check for whether the structs implement the interfaces
 var _ RevNatKey = (*RevNat6Key)(nil)
+var _ RevNatKey = (*RevNat6KeyV2)(nil)
 var _ RevNatValue = (*RevNat6Value)(nil)
 var _ ServiceKey = (*Service6Key)(nil)
 var _ ServiceValue = (*Service6Value)(nil)
@@ -97,6 +98,33 @@ func (v *RevNat6Key) ToNetwork() RevNatKey {
 
 // ToNetwork converts RevNat6Key to host byte order.
 func (v *RevNat6Key) ToHost() RevNatKey {
+	h := *v
+	h.Key = byteorder.NetworkToHost16(h.Key)
+	return &h
+}
+
+type RevNat6KeyV2 struct {
+	Key uint16
+}
+
+func NewRevNat6KeyV2(value uint16) *RevNat6KeyV2 {
+	return &RevNat6KeyV2{value}
+}
+
+func (v *RevNat6KeyV2) Map() *bpf.Map   { return RevNat6Map }
+func (v *RevNat6KeyV2) String() string  { return fmt.Sprintf("%d", v.ToHost().(*RevNat6KeyV2).Key) }
+func (v *RevNat6KeyV2) New() bpf.MapKey { return &RevNat6KeyV2{} }
+func (v *RevNat6KeyV2) GetKey() uint16  { return v.Key }
+
+// ToNetwork converts RevNat6KeyV2 to network byte order.
+func (v *RevNat6KeyV2) ToNetwork() RevNatKey {
+	n := *v
+	n.Key = byteorder.HostToNetwork16(n.Key)
+	return &n
+}
+
+// ToNetwork converts RevNat6KeyV2 to host byte order.
+func (v *RevNat6KeyV2) ToHost() RevNatKey {
 	h := *v
 	h.Key = byteorder.NetworkToHost16(h.Key)
 	return &h
@@ -217,7 +245,7 @@ func (s *Service6Value) SetQCount(count int)  { s.QCount = uint16(count) }
 func (s *Service6Value) GetQCount() int       { return int(s.QCount) }
 func (s *Service6Value) SetRevNat(id int)     { s.RevNat = uint16(id) }
 func (s *Service6Value) GetRevNat() int       { return int(s.RevNat) }
-func (s *Service6Value) RevNatKey() RevNatKey { return &RevNat6Key{s.RevNat} }
+func (s *Service6Value) RevNatKey() RevNatKey { return &RevNat6KeyV2{s.RevNat} }
 func (s *Service6Value) SetFlags(flags uint16) {
 	s.Flags = uint8(flags & 0xff)
 	s.Flags2 = uint8(flags >> 8)

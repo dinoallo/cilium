@@ -664,7 +664,7 @@ func (s *Service) populateReverseNatMapV2FromV1(ipv4, ipv6 bool) error {
 				newKey = lbmap.NewRevNat4KeyV2(origKey.GetKey())
 			} else {
 				origKey := key.(*lbmap.RevNat6Key)
-				newKey = origKey
+				newKey = lbmap.NewRevNat6KeyV2(origKey.GetKey())
 			}
 
 			err := v2Map.Update(newKey, value)

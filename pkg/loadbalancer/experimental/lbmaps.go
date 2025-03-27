@@ -217,7 +217,7 @@ var (
 	revNat6MapSpec = &ebpf.MapSpec{
 		Name:      lbmap.RevNat6MapV2Name,
 		Type:      ebpf.Hash,
-		KeySize:   sizeOf[lbmap.RevNat6Key](),
+		KeySize:   sizeOf[lbmap.RevNat6KeyV2](),
 		ValueSize: sizeOf[lbmap.RevNat6Value](),
 	}
 
